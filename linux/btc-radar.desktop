@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=BTC RADAR
+Comment=Painel local de mercado futuro de bitcoin
+Exec=/home/SEU-USUARIO/BTC-RADAR/start.sh
+Path=/home/SEU-USUARIO/BTC-RADAR
+Icon=utilities-system-monitor
+Terminal=false
+Categories=Office;Finance;
+StartupNotify=false

@@ -1,0 +1,28 @@
+# Servico de usuario: mantem os coletores rodando mesmo com o painel fechado.
+#
+#   mkdir -p ~/.config/systemd/user
+#   cp linux/btc-radar.service ~/.config/systemd/user/
+#   # troque WorkingDirectory e ExecStart pelos caminhos reais
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now btc-radar.service
+#   loginctl enable-linger "$USER"   # para seguir rodando sem sessao aberta
+
+[Unit]
+Description=BTC RADAR - painel local de mercado futuro de bitcoin
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/BTC-RADAR
+ExecStart=%h/.nvm/versions/node/v22.11.0/bin/node server.js
+Environment=PORT=8899
+# Chave da IA sem gravar em arquivo (opcional):
+# Environment=GEMINI_KEY=coloque-aqui
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

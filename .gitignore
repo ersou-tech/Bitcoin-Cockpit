@@ -1,0 +1,5 @@
+data/*
+!data/config.example.json
+backups/
+node_modules/
+*.log
