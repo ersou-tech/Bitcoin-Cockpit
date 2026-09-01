@@ -204,7 +204,7 @@ function liquidacoes() {
     h1: janela(1),
     h24: janela(24),
     fontes: ['bybit', 'okx', 'gate'],
-    nota: 'Binance fora: sem stream confiavel e sem REST publico de liquidacao agregada.'
+    nota: 'Binance fora: sem stream confiável e sem REST público de liquidação agregada.'
   };
 }
 

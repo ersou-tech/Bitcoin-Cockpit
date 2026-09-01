@@ -10,8 +10,8 @@ globais que o projeto usa.
 
 ![BTC RADAR](docs/print.png)
 
-*Visão geral. Neste print a Binance está bloqueada por região, então preço, open interest e a
-série do gráfico vêm da OKX — o painel diz a fonte em vez de ficar vazio.*
+*Visão geral no modo simples. Neste print a Binance está bloqueada por região, então preço, open
+interest e a série do gráfico vêm da OKX — o painel diz a fonte em vez de ficar vazio.*
 
 ## Como rodar
 
@@ -141,21 +141,38 @@ idioma, alertas) ficam no `localStorage` com prefixo `btcr-`.
 ## A interface
 
 Seis views, trocadas pelos números **1** a **6** ou pelas abas. A faixa de métricas embaixo do
-preço é clicável: cada número leva para a view que o explica.
+preço mostra os números do momento; clicar em qualquer um deles abre a explicação.
 
-- **Painéis recolhíveis.** Clique no título de qualquer painel para fechar. O que você fechar
-  continua fechado na próxima abertura (fica no `localStorage`).
-- **Estado do mercado** em texto grande, derivado de preço 24h cruzado com Δ open interest 24h.
-  O botão simples/técnico troca a explicação sem trocar a leitura.
-- **De onde vem a pressão**: uma barra divergente por fator (fluxo, livro, estouros, funding,
-  varejo, grandes contas, sentimento). Clique num fator para ler o que ele mede. Fator sem fonte
-  disponível aparece apagado e escrito "sem dado" — não vira zero, e não entra na média do líquido.
-- **Gráfico empilhado**: preço, open interest, long/short e liquidações em painéis separados
-  dividindo o mesmo eixo de tempo. Passe o mouse para a linha de corte; **clique para fixar** o
-  instante e clicar de novo solta.
-- **Manchetes** têm filtro por texto. **Snapshots** tem tabela ordenável (clique no cabeçalho).
-- Atalhos: `1`–`6` views, `←` `→` passa de view, `S` salva snapshot, `R` recarrega,
-  `F` gira o timeframe, `?` abre a lista de atalhos, `Esc` fecha janelas.
+### Modo simples e modo completo
+
+O botão no canto superior direito troca a linguagem do painel inteiro.
+
+No **modo simples** (o padrão) os rótulos são em português comum — "custo de apostar na alta" no
+lugar de *funding*, "dinheiro apostado" no lugar de *open interest*, "estouro de posição" no lugar
+de *liquidação* — e os indicadores mais técnicos ficam escondidos. O **modo completo** devolve os
+nomes de mercado e todos os blocos. A escolha fica gravada no navegador.
+
+### Explicação em todo lugar
+
+Todo número tem um `?` discreto e abre uma gaveta lateral com três coisas: **o que é**, **como ler**
+e **como está agora** — esta última calculada com o dado do momento, não um texto genérico. A tecla
+**G** abre o glossário completo; de dentro dele dá para pular para qualquer outro termo.
+
+### O que dá para fazer
+
+- **O que está acontecendo agora**: quatro a cinco frases em português montadas a partir dos dados,
+  no topo da visão geral. É o resumo que dispensa saber jargão.
+- **Painéis recolhíveis**: clique no título para fechar. O que você fechar continua fechado na
+  próxima abertura.
+- **De onde vem a pressão**: uma barra por fator (dinheiro entrando, ofertas no livro, estouros,
+  custo da aposta, varejo, contas grandes, sentimento). Clique num fator para ler o que ele mede.
+  Fator sem fonte disponível aparece apagado com "sem dado" — não vira zero, e não entra na média.
+- **Gráfico**: quatro faixas dividindo o mesmo eixo de tempo. Passe o mouse para ler os quatro
+  valores do mesmo instante, **clique para fixar** a linha de leitura, **arraste para dar zoom**,
+  **duplo clique** volta. Os botões em cima ligam e desligam cada faixa.
+- **Manchetes** têm filtro por texto; **snapshots** têm tabela ordenável por qualquer coluna.
+- Atalhos: `1`–`6` views, `←` `→` passa de view, `S` salva snapshot, `R` recarrega, `F` gira o
+  timeframe, `G` glossário, `?` lista de atalhos, `Esc` fecha.
 
 O layout tem três quebras: três colunas acima de 1560px, duas até 1180px e uma coluna abaixo disso.
 

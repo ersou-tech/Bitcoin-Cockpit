@@ -241,18 +241,18 @@ async function calcular() {
 
   const componentes = [
     {
-      nome: 'Aposta de juro no proximo FOMC',
-      entrada: diferencaFomc === null ? null : arredondar(diferencaFomc * 100) + '% liquido a favor de corte',
+      nome: 'Aposta de juro no próximo FOMC',
+      entrada: diferencaFomc === null ? null : arredondar(diferencaFomc * 100) + '% líquido a favor de corte',
       contribuicao: arredondar(limitar((diferencaFomc || 0) * 80, 32)),
       teto: 32,
       explicacao: 'Probabilidade de corte menos a de alta, pelo dinheiro apostado na Polymarket. Corte tende a soltar liquidez.'
     },
     {
-      nome: 'Dolar (DXY) em 30 dias',
+      nome: 'Dólar (DXY) em 30 dias',
       entrada: juro && dolar.var30d !== null ? dolar.var30d + '%' : null,
       contribuicao: arredondar(limitar(-(dolar.var30d || 0) * 8, 20)),
       teto: 20,
-      explicacao: 'Dolar caindo costuma acompanhar apetite por risco; dolar subindo aperta.'
+      explicacao: 'Dólar caindo costuma acompanhar apetite por risco; dólar subindo aperta.'
     },
     {
       nome: 'Juro de 10 anos em 30 dias',
@@ -266,23 +266,23 @@ async function calcular() {
       entrada: nasdaq.var30d !== null ? nasdaq.var30d + '%' : null,
       contribuicao: arredondar(limitar((nasdaq.var30d || 0) * 1.5, 18)),
       teto: 18,
-      explicacao: 'Bolsa de tecnologia e o par de risco mais proximo do bitcoin.'
+      explicacao: 'Bolsa de tecnologia é o par de risco mais próximo do bitcoin.'
     },
     {
       nome: 'Volatilidade DVOL em 7 dias',
       entrada: volatilidade.var7d !== null ? volatilidade.var7d + '%' : null,
       contribuicao: arredondar(limitar(-(volatilidade.var7d || 0) * 0.6, 15)),
       teto: 15,
-      explicacao: 'Volatilidade implicita caindo costuma indicar mercado mais calmo.'
+      explicacao: 'Volatilidade implícita caindo costuma indicar mercado mais calmo.'
     }
   ];
 
   const nota = arredondar(limitar(componentes.reduce((s, c) => s + (c.contribuicao || 0), 0), 100), 1);
   let rotulo = 'neutro';
   if (nota >= 35) rotulo = 'vento a favor';
-  else if (nota >= 12) rotulo = 'levemente favoravel';
+  else if (nota >= 12) rotulo = 'levemente favorável';
   else if (nota <= -35) rotulo = 'vento contra';
-  else if (nota <= -12) rotulo = 'levemente contrario';
+  else if (nota <= -12) rotulo = 'levemente contrário';
 
   return {
     t: Date.now(),
@@ -292,7 +292,7 @@ async function calcular() {
     polymarket: apostas,
     macro: dadosMacro,
     dvol: volatilidade,
-    aviso: 'Formula fechada, sem IA. Os coeficientes sao julgamento do autor, nao resultado de backtest.'
+    aviso: 'Fórmula fechada, sem IA. Os coeficientes são julgamento do autor, não resultado de backtest.'
   };
 }
 

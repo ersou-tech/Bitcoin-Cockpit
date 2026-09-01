@@ -226,6 +226,54 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
 .teclas{display:grid;grid-template-columns:84px 1fr;gap:7px var(--e3);font-size:12px;margin-top:var(--e3)}
 .teclas kbd{font-family:'JetBrains Mono',monospace;font-size:11px;border:1px solid var(--fio2);
   padding:2px 7px;color:var(--branco);text-align:center;background:#0b0f17}
+
+/* --------------------------------------------------- gaveta de explicação */
+#gaveta{position:fixed;top:0;right:0;bottom:0;width:min(400px,92vw);background:#070a10;
+  border-left:1px solid var(--fio2);z-index:80;transform:translateX(102%);
+  transition:transform .22s ease-out;display:flex;flex-direction:column;
+  box-shadow:-20px 0 60px rgba(0,0,0,.55)}
+#gaveta.aberta{transform:none}
+#gaveta > header{display:flex;align-items:center;gap:var(--e2);padding:var(--e3) var(--e4);
+  border-bottom:1px solid var(--fio);background:var(--painel-topo)}
+#gaveta > header h3{flex:1;font-size:13px;font-weight:600;letter-spacing:.02em}
+#gavetaCorpo{padding:var(--e4);overflow:auto;font-size:13px;line-height:1.6}
+#gavetaCorpo h4{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ciano);
+  margin:var(--e4) 0 var(--e1);font-weight:600}
+#gavetaCorpo h4:first-child{margin-top:0}
+#gavetaCorpo p{color:var(--texto);margin-bottom:var(--e2)}
+#gavetaCorpo .agora{border-left:2px solid var(--ciano);background:rgba(57,212,255,.05);
+  padding:9px 12px;margin:var(--e2) 0;color:var(--branco)}
+#gavetaCorpo .indice{display:flex;flex-wrap:wrap;gap:5px;margin-top:var(--e3)}
+#gavetaCorpo .indice button{text-transform:none;letter-spacing:0;font-weight:400;font-size:11.5px}
+
+/* qualquer coisa explicável fica clicável e mostra o ponto de interrogação */
+[data-explica]{cursor:pointer}
+[data-explica]:hover{color:var(--branco)}
+[data-explica]::after{content:'?';font-size:8.5px;vertical-align:super;margin-left:3px;
+  color:var(--fio2);font-weight:700}
+[data-explica]:hover::after{color:var(--ciano)}
+.linha[data-explica]::after,button[data-explica]::after{content:none}
+.linha[data-explica] .k::after{content:'?';font-size:8.5px;vertical-align:super;margin-left:3px;color:var(--fio2);font-weight:700}
+.linha[data-explica]:hover .k::after{color:var(--ciano)}
+.linha[data-explica]:hover{background:rgba(57,212,255,.05)}
+.linha[data-explica]{padding-left:4px;padding-right:4px;margin:0 -4px}
+
+/* modo simples esconde o que é de trader */
+body.modo-simples [data-nivel="avancado"]{display:none !important}
+#seletorModo{display:inline-flex}
+
+/* chips de faixa do gráfico */
+.faixas{display:inline-flex;gap:5px}
+.faixas button{padding:4px 9px;font-size:10px}
+.faixas button.desligada{opacity:.4;text-decoration:line-through}
+#zoomAviso{font-size:10.5px;color:var(--fraco)}
+.canvasArrasta{position:relative}
+
+.resumo p{font-size:14.5px;line-height:1.62;color:var(--branco);margin-bottom:var(--e2)}
+.resumo p:last-of-type{margin-bottom:0}
+.resumo b{font-weight:600}
+.rodapeResumo{font-size:10.5px;margin-top:var(--e3);padding-top:var(--e2);border-top:1px solid var(--fio)}
+.painel > header .explica{text-transform:none;letter-spacing:0;font-weight:400;padding:4px 8px}
 </style>
 </head>
 <body>
@@ -247,6 +295,10 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
       <button data-vista="6"><span class="num">6</span>Alertas</button>
     </nav>
     <div id="acoesTopo">
+      <span id="seletorModo" class="grupo">
+        <button data-modo="simples" title="Só o essencial, em português comum">Simples</button>
+        <button data-modo="completo" title="Todos os indicadores">Completo</button>
+      </span>
       <button id="btnAjuda" title="Atalhos do teclado">?</button>
       <button id="btnAjustes" title="Chave da IA">Ajustes</button>
     </div>
@@ -262,25 +314,32 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
 
       <div class="coluna">
         <section class="painel" data-painel="mercado">
-          <header><h3>Mercado</h3><span id="relogio" class="selo mono"></span></header>
+          <header><h3>Mercado</h3><div class="acoes"><button class="explica" data-explica="preco">explicar</button></div><span id="relogio" class="selo mono"></span></header>
           <div class="corpo"><div id="sparks"></div></div>
         </section>
         <section class="painel" data-painel="sentimento">
-          <header><h3>Sentimento</h3>
-            <div class="acoes"><button data-ir="4">ver</button></div>
+          <header><h3 data-simples="Humor do mercado">Sentimento</h3>
+            <div class="acoes"><button class="explica" data-explica="termometro">explicar</button><button data-ir="4">ver</button></div>
           </header>
           <div class="corpo"><div id="notasSentimento"></div></div>
         </section>
         <section class="painel" data-painel="macro">
           <header><h3>Macro</h3>
-            <div class="acoes"><button data-ir="4">ver</button></div>
+            <div class="acoes"><button class="explica" data-explica="preditivo">explicar</button><button data-ir="4">ver</button></div>
           </header>
           <div class="corpo"><div id="blocoMacro"></div></div>
         </section>
       </div>
 
       <div class="coluna">
-        <section class="painel" data-painel="estado">
+        <section class="painel" data-painel="resumo">
+          <header><h3>O que está acontecendo agora</h3>
+            <div class="acoes"><button data-explica="resumo">Como leio isso?</button></div>
+          </header>
+          <div class="corpo"><div id="resumoHumano" class="resumo"></div></div>
+        </section>
+
+        <section class="painel" data-painel="estado" data-nivel="avancado">
           <header><h3>Estado do mercado</h3>
             <div class="acoes grupo">
               <button id="btnSimples" class="ativo">Simples</button><button id="btnTecnico">Técnico</button>
@@ -296,7 +355,7 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
 
         <section class="painel" data-painel="pressao">
           <header><h3>De onde vem a pressão</h3>
-            <span id="pressaoLiquido" class="selo mono"></span>
+            <div class="acoes"><button class="explica" data-explica="pressao">explicar</button><span id="pressaoLiquido" class="selo mono"></span></div>
           </header>
           <div class="corpo">
             <div id="pressao"></div>
@@ -305,8 +364,10 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
         </section>
 
         <section class="painel" data-painel="grafico">
-          <header><h3>Preço · open interest · long/short · liquidações</h3>
+          <header><h3>Gráfico do mercado</h3>
             <div class="acoes">
+              <button class="explica" data-explica="grafico">explicar</button>
+              <span class="faixas" data-faixas></span>
               <span id="tfBotoes" class="grupo">
                 <button data-tf="15m">15m</button><button data-tf="1h" class="ativo">1h</button>
                 <button data-tf="4h">4h</button><button data-tf="1d">1d</button>
@@ -317,21 +378,22 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
           <div class="corpo">
             <canvas id="graficoGeral" height="340"></canvas>
             <div id="tooltipGeral" class="fraco mono" style="font-size:11px;min-height:17px;margin-top:6px"></div>
+            <div id="zoomAviso">Arraste sobre o gráfico para dar zoom · duplo clique volta ao normal · clique fixa a linha de leitura</div>
           </div>
         </section>
       </div>
 
       <div class="coluna lado-direito">
         <section class="painel" data-painel="livro">
-          <header><h3>Mapa de liquidez</h3><span class="selo">±2%</span></header>
+          <header><h3 data-simples="Onde estão as ordens">Mapa de liquidez</h3><div class="acoes"><button class="explica" data-explica="livro">explicar</button><span class="selo">±2%</span></div></header>
           <div class="corpo"><canvas id="mapaLivro" height="250"></canvas></div>
         </section>
         <section class="painel" data-painel="mapaliq">
-          <header><h3>Liquidações por preço</h3><span class="selo">24h</span></header>
+          <header><h3 data-simples="Onde estouraram posições">Liquidações por preço</h3><div class="acoes"><button class="explica" data-explica="liquidacao">explicar</button><span class="selo">24h</span></div></header>
           <div class="corpo"><canvas id="mapaLiq" height="230"></canvas></div>
         </section>
         <section class="painel" data-painel="muros">
-          <header><h3>Maiores muros</h3><div class="acoes"><button data-ir="3">ver</button></div></header>
+          <header><h3 data-simples="Maiores barreiras">Maiores muros</h3><div class="acoes"><button class="explica" data-explica="muro">explicar</button><button data-ir="3">ver</button></div></header>
           <div class="corpo"><div id="muros"></div></div>
         </section>
       </div>
@@ -339,15 +401,15 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
 
     <div class="grade g-tres" style="margin-top:var(--e4)">
       <section class="painel" data-painel="posic">
-        <header><h3>Posicionamento</h3></header>
+        <header><h3 data-simples="Quem está apostando em quê">Posicionamento</h3><div class="acoes"><button class="explica" data-explica="lsr">explicar</button></div></header>
         <div class="corpo"><div id="posicionamento"></div></div>
       </section>
       <section class="painel" data-painel="fundbasis">
-        <header><h3>Funding, basis e open interest</h3></header>
+        <header><h3 data-simples="Custo, prêmio e dinheiro apostado">Funding, basis e open interest</h3><div class="acoes"><button class="explica" data-explica="oi">explicar</button></div></header>
         <div class="corpo"><div id="fundingBasis"></div></div>
       </section>
       <section class="painel" data-painel="liqrodape">
-        <header><h3>Liquidações</h3></header>
+        <header><h3 data-simples="Estouros de posição">Liquidações</h3><div class="acoes"><button class="explica" data-explica="liquidacao">explicar</button></div></header>
         <div class="corpo"><div id="liquidacoesRodape"></div></div>
       </section>
     </div>
@@ -356,8 +418,9 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
   <!-- ========================================================== 2 GRÁFICO -->
   <section class="vista" data-vista="2">
     <section class="painel" data-painel="graficocheio">
-      <header><h3>Painéis empilhados · eixo de tempo compartilhado</h3><span class="selo mono" data-fonte-serie></span>
+      <header><h3>Gráfico do mercado</h3><span class="selo mono" data-fonte-serie></span>
         <div class="acoes">
+          <span class="faixas" data-faixas></span>
           <span id="tfBotoes2" class="grupo">
             <button data-tf="15m">15m</button><button data-tf="1h" class="ativo">1h</button>
             <button data-tf="4h">4h</button><button data-tf="1d">1d</button>
@@ -376,16 +439,16 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
   <section class="vista" data-vista="3">
     <div class="grade g-dois">
       <section class="painel" data-painel="livrogrande">
-        <header><h3>Livro somado · Binance + Bybit + OKX</h3><span class="selo">±2%</span></header>
+        <header><h3 data-simples="Onde estão as ordens de compra e venda">Livro somado · Binance + Bybit + OKX</h3><span class="selo">±2%</span></header>
         <div class="corpo"><canvas id="mapaLivroGrande" height="500"></canvas></div>
       </section>
       <section class="painel" data-painel="liqgrande">
-        <header><h3>Liquidações por faixa de preço</h3><span class="selo">24h</span></header>
+        <header><h3 data-simples="Em que preço as posições estouraram">Liquidações por faixa de preço</h3><span class="selo">24h</span></header>
         <div class="corpo"><canvas id="mapaLiqGrande" height="500"></canvas></div>
       </section>
     </div>
     <section class="painel" data-painel="murosgrande" style="margin-top:var(--e4)">
-      <header><h3>Maiores muros do livro somado</h3></header>
+      <header><h3 data-simples="Maiores barreiras no livro">Maiores muros do livro somado</h3><div class="acoes"><button class="explica" data-explica="muro">explicar</button></div></header>
       <div class="corpo"><div id="murosGrande"></div></div>
     </section>
   </section>
@@ -395,7 +458,7 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
     <div class="grade g-tres">
       <div class="coluna">
         <section class="painel" data-painel="termo">
-          <header><h3>Termômetro</h3><span id="termoNota" class="selo mono"></span></header>
+          <header><h3 data-simples="Humor do mercado">Termômetro</h3><div class="acoes"><button class="explica" data-explica="termometro">explicar</button><span id="termoNota" class="selo mono"></span></div></header>
           <div class="corpo">
             <div class="termometro"><div id="agulha" class="agulha" style="left:50%"></div></div>
             <div class="escala"><span>medo -100</span><span>0</span><span>+100 ganância</span></div>
@@ -403,19 +466,19 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
           </div>
         </section>
         <section class="painel" data-painel="fng">
-          <header><h3>Medo e ganância · 60 dias</h3><span id="fngAtual" class="selo mono"></span></header>
+          <header><h3>Medo e ganância · 60 dias</h3><div class="acoes"><button class="explica" data-explica="fng">explicar</button><span id="fngAtual" class="selo mono"></span></div></header>
           <div class="corpo"><canvas id="graficoFng" height="170"></canvas></div>
         </section>
       </div>
       <section class="painel" data-painel="ianoticias">
         <header><h3>Leitura das notícias</h3>
-          <div class="acoes"><button id="rodarNoticias">Rodar análise</button></div>
+          <div class="acoes"><button class="explica" data-explica="ia">explicar</button><button id="rodarNoticias">Rodar análise</button></div>
         </header>
         <div class="corpo"><div id="analiseNoticias"></div></div>
       </section>
       <section class="painel" data-painel="iafed">
         <header><h3>Leitura do Fed</h3>
-          <div class="acoes"><button id="rodarFed">Rodar análise</button></div>
+          <div class="acoes"><button class="explica" data-explica="ia">explicar</button><button id="rodarFed">Rodar análise</button></div>
         </header>
         <div class="corpo"><div id="analiseFed"></div></div>
       </section>
@@ -423,7 +486,7 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
 
     <div class="grade g-doisum" style="margin-top:var(--e4)">
       <section class="painel" data-painel="preditivo">
-        <header><h3>Preditivo · fórmula, sem IA</h3><span id="preditivoNota" class="selo mono"></span></header>
+        <header><h3 data-simples="Ambiente lá fora">Preditivo · fórmula, sem IA</h3><div class="acoes"><button class="explica" data-explica="preditivo">explicar</button><span id="preditivoNota" class="selo mono"></span></div></header>
         <div class="corpo"><div id="tabelaPreditivo"></div></div>
       </section>
       <section class="painel" data-painel="manchetes">
@@ -440,7 +503,7 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
     <div class="grade g-snap">
       <div class="coluna">
         <section class="painel" data-painel="salvar">
-          <header><h3>Salvar momento</h3><span class="selo">manual</span></header>
+          <header><h3>Salvar momento</h3><div class="acoes"><button class="explica" data-explica="snapshot">explicar</button><span class="selo">manual</span></div></header>
           <div class="corpo">
             <div class="campo"><span class="rot">Nota</span>
               <textarea id="notaSnap" rows="4" placeholder="o que você está vendo agora"></textarea></div>
@@ -455,7 +518,7 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
           </div>
         </section>
         <section class="painel" data-painel="backup">
-          <header><h3>Backup</h3><div class="acoes"><button id="forcarBackup">Rodar agora</button></div></header>
+          <header><h3>Backup</h3><div class="acoes"><button class="explica" data-explica="backup">explicar</button><button id="forcarBackup">Rodar agora</button></div></header>
           <div class="corpo"><div id="painelBackup"></div></div>
         </section>
       </div>
@@ -481,7 +544,7 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
   <section class="vista" data-vista="6">
     <div class="grade g-alerta">
       <section class="painel" data-painel="regras">
-        <header><h3>Regras</h3><span class="selo">a cada 15s · silêncio de 10 min por regra</span></header>
+        <header><h3>Regras</h3><div class="acoes"><button class="explica" data-explica="alerta">explicar</button><span class="selo">a cada 15s · silêncio de 10 min por regra</span></div></header>
         <div class="corpo">
           <div id="regras"></div>
           <div class="botoeira" style="margin-top:var(--e3)">
@@ -534,6 +597,7 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
       <kbd>S</kbd><span>Salvar snapshot agora</span>
       <kbd>R</kbd><span>Recarregar todos os dados</span>
       <kbd>F</kbd><span>Trocar o timeframe do gráfico</span>
+      <kbd>G</kbd><span>Abrir o glossário: o que cada número quer dizer</span>
       <kbd>?</kbd><span>Abrir e fechar esta ajuda</span>
       <kbd>Esc</kbd><span>Fechar janelas</span>
     </div>
@@ -542,6 +606,14 @@ tbody tr.marcada td{background:rgba(57,212,255,.09)}
     <div class="botoeira"><button id="fecharAjuda" class="ativo">Entendi</button></div>
   </div>
 </div>
+
+<aside id="gaveta">
+  <header>
+    <h3 id="gavetaTitulo">Explicação</h3>
+    <button id="fecharGaveta">Fechar</button>
+  </header>
+  <div id="gavetaCorpo"></div>
+</aside>
 
 <div id="toasts"></div>
 
@@ -681,21 +753,22 @@ function ligarWebSocket() {
 // A faixa de métricas é montada uma vez; depois só os valores mudam.
 // Cada métrica é um atalho para a view que a explica.
 const METRICAS = [
-  { id: 'oi', k: 'Open interest', vista: '1', v: () => dinheiro(E.oi.total) },
-  { id: 'doi', k: 'Δ OI 1h', vista: '2', v: () => pct(E.deltaOi1h, 2), cor: () => E.deltaOi1h },
-  { id: 'funding', k: 'Funding', vista: '1', v: () => (Number.isFinite(E.funding) ? (E.funding * 100).toFixed(4) + '%' : '—'), cor: () => E.funding },
-  { id: 'basis', k: 'Basis', vista: '1', v: () => pct(E.basis, 3), cor: () => E.basis },
-  { id: 'liq', k: 'Liquidações 1h', vista: '3', v: () => dinheiro(janelaLiquidacoes(1).total) },
-  { id: 'vol', k: 'Volume 24h', vista: '1', v: () => dinheiro(E.volume24h) },
-  { id: 'lsr', k: 'Long/short varejo', vista: '1', v: () => (E.lsr.varejo ? E.lsr.varejo.toFixed(2) : '—') },
-  { id: 'termo', k: 'Termômetro', vista: '4', v: () => { const t = calcularTermometro(); return t.nota === null ? '—' : t.nota.toFixed(0); }, cor: () => calcularTermometro().nota },
-  { id: 'pred', k: 'Preditivo', vista: '4', v: () => (E.preditivo && Number.isFinite(E.preditivo.nota) ? String(E.preditivo.nota) : '—'), cor: () => (E.preditivo ? E.preditivo.nota : null) }
+  { id: 'oi', termo: 'oi', simples: 'Dinheiro apostado', tecnico: 'Open interest', v: () => dinheiro(E.oi.total) },
+  { id: 'doi', termo: 'doi', simples: 'Mudança em 1h', tecnico: 'Δ OI 1h', v: () => pct(E.deltaOi1h, 2), cor: () => E.deltaOi1h },
+  { id: 'funding', termo: 'funding', simples: 'Custo da aposta', tecnico: 'Funding', v: () => (Number.isFinite(E.funding) ? (E.funding * 100).toFixed(4) + '%' : '—'), cor: () => E.funding },
+  { id: 'basis', termo: 'basis', simples: 'Futuro vs à vista', tecnico: 'Basis', v: () => pct(E.basis, 3), cor: () => E.basis },
+  { id: 'liq', termo: 'liquidacao', simples: 'Estouros em 1h', tecnico: 'Liquidações 1h', v: () => dinheiro(janelaLiquidacoes(1).total) },
+  { id: 'vol', termo: 'volume', simples: 'Girou em 24h', tecnico: 'Volume 24h', v: () => dinheiro(E.volume24h) },
+  { id: 'lsr', termo: 'lsr', simples: 'Comprados vs vendidos', tecnico: 'Long/short varejo', v: () => (E.lsr.varejo ? E.lsr.varejo.toFixed(2) : '—') },
+  { id: 'termo', termo: 'termometro', simples: 'Humor do mercado', tecnico: 'Termômetro', v: () => { const t = calcularTermometro(); return t.nota === null ? '—' : t.nota.toFixed(0); }, cor: () => calcularTermometro().nota },
+  { id: 'pred', termo: 'preditivo', simples: 'Ambiente lá fora', tecnico: 'Preditivo', v: () => (E.preditivo && Number.isFinite(E.preditivo.nota) ? String(E.preditivo.nota) : '—'), cor: () => (E.preditivo ? E.preditivo.nota : null) }
 ];
 
 function montarFaixa() {
   $('#faixa').innerHTML = METRICAS.map((m) =>
-    '<button class="metrica" data-ir="' + m.vista + '" title="ir para a view ' + m.vista + '">' +
-    '<span class="k">' + m.k + '</span><span class="v mono" id="m-' + m.id + '">—</span></button>').join('');
+    '<button class="metrica" data-explica="' + m.termo + '" title="clique para entender">' +
+    '<span class="k">' + rotulo(m.simples, m.tecnico) + '</span>' +
+    '<span class="v mono" id="m-' + m.id + '">—</span></button>').join('');
 }
 
 function pintarTopo() {
@@ -1000,152 +1073,176 @@ function textoFraco(ctx, texto, x, y, cor) {
 
 // -------------------------------------------------- gráfico empilhado principal
 const FAIXAS = [
-  { chave: 'preco', rotulo: 'PREÇO', peso: 0.40 },
-  { chave: 'oi', rotulo: 'OPEN INTEREST', peso: 0.21 },
-  { chave: 'lsr', rotulo: 'LONG/SHORT (contas)', peso: 0.18 },
-  { chave: 'liq', rotulo: 'LIQUIDAÇÕES', peso: 0.21 }
+  { chave: 'preco', rotulo: 'PREÇO', curto: 'Preço', peso: 0.40 },
+  { chave: 'oi', rotulo: 'OPEN INTEREST (dinheiro apostado)', curto: 'Apostado', peso: 0.21 },
+  { chave: 'lsr', rotulo: 'COMPRADOS vs VENDIDOS', curto: 'Comprados', peso: 0.18 },
+  { chave: 'liq', rotulo: 'ESTOUROS (liquidações)', curto: 'Estouros', peso: 0.21 }
 ];
 
-function desenharEmpilhado(canvas, saidaTooltip, indiceCorte) {
-  const dados = E.serie;
-  const { ctx, largura, altura } = preparar(canvas);
-  if (!dados || !dados.length) { textoFraco(ctx, 'sem dados ainda', 12, 20); return; }
+// Faixas visíveis e recorte de zoom são estado da interface, não do dado.
+E.faixas = new Set(lembrar('faixas', ['preco', 'oi', 'lsr', 'liq']));
+E.modo = lembrar('modo', 'simples');
+E.recorte = null;
 
-  const margemE = 8, margemD = 72, topo = 6, base = 18;
+function serieVisivel() {
+  const todos = E.serie || [];
+  if (!E.recorte) return todos;
+  return todos.slice(E.recorte.i0, E.recorte.i1 + 1);
+}
+
+function montarChipsDeFaixa() {
+  const marcacao = FAIXAS.map((f) =>
+    '<button data-faixa="' + f.chave + '" class="' + (E.faixas.has(f.chave) ? '' : 'desligada') + '">' +
+    f.curto + '</button>').join('');
+  $$('[data-faixas]').forEach((caixa) => { caixa.innerHTML = marcacao; });
+  $$('[data-faixa]').forEach((botao) => {
+    botao.onclick = () => {
+      const chave = botao.dataset.faixa;
+      if (E.faixas.has(chave)) {
+        if (E.faixas.size === 1) return toast('Deixe pelo menos uma faixa ligada.');
+        E.faixas.delete(chave);
+      } else E.faixas.add(chave);
+      guardar('faixas', Array.from(E.faixas));
+      montarChipsDeFaixa();
+      redesenhar();
+    };
+  });
+}
+
+function desenharEmpilhado(canvas, saidaTooltip, indiceCorte, selecao) {
+  const dados = serieVisivel();
+  const { ctx, largura, altura } = preparar(canvas);
+  if (!dados.length) {
+    textoFraco(ctx, 'esperando os dados do mercado…', 12, 22);
+    return;
+  }
+
+  const margemE = 8, margemD = 78, topo = 6, base = 18;
   const util = largura - margemE - margemD;
   const alturaUtil = altura - topo - base;
   const passoX = util / dados.length;
   const xDe = (i) => margemE + i * passoX + passoX / 2;
 
+  const visiveis = FAIXAS.filter((f) => E.faixas.has(f.chave));
+  const somaPeso = visiveis.reduce((s, f) => s + f.peso, 0) || 1;
   let y = topo;
-  const faixas = FAIXAS.map((f) => {
-    const h = alturaUtil * f.peso;
-    const caixa = { ...f, y0: y, y1: y + h - 10 };
-    y += h;
-    return caixa;
-  });
+  const caixas = {};
+  for (const f of visiveis) {
+    const alto = alturaUtil * (f.peso / somaPeso);
+    caixas[f.chave] = { y0: y, y1: y + alto - 10, rotulo: f.rotulo };
+    y += alto;
+  }
 
-  // linhas divisórias e rótulos
   ctx.strokeStyle = CORES.fio;
   ctx.lineWidth = 1;
-  for (const f of faixas) {
+  for (const chave of Object.keys(caixas)) {
+    const f = caixas[chave];
     ctx.beginPath(); ctx.moveTo(margemE, f.y1 + 5); ctx.lineTo(largura - margemD, f.y1 + 5); ctx.stroke();
     textoFraco(ctx, f.rotulo, margemE + 2, f.y0 + 9);
   }
 
   const escalar = (v, min, max, f) => f.y1 - ((v - min) / ((max - min) || 1)) * (f.y1 - f.y0 - 12);
 
-  // preço
-  const fPreco = faixas[0];
-  const altos = dados.map((d) => d.h), baixos = dados.map((d) => d.l);
-  const maxP = Math.max(...altos), minP = Math.min(...baixos);
-  ctx.lineWidth = 1;
-  for (let i = 0; i < dados.length; i++) {
-    const d = dados[i];
-    const cor = d.c >= d.o ? CORES.verde : CORES.vermelho;
-    ctx.strokeStyle = cor; ctx.fillStyle = cor;
-    const x = xDe(i);
-    ctx.beginPath();
-    ctx.moveTo(x, escalar(d.h, minP, maxP, fPreco));
-    ctx.lineTo(x, escalar(d.l, minP, maxP, fPreco));
-    ctx.stroke();
-    const yo = escalar(d.o, minP, maxP, fPreco), yc = escalar(d.c, minP, maxP, fPreco);
-    const largBarra = Math.max(1, passoX * 0.6);
-    ctx.fillRect(x - largBarra / 2, Math.min(yo, yc), largBarra, Math.max(1, Math.abs(yc - yo)));
+  if (caixas.preco) {
+    const f = caixas.preco;
+    const maxP = Math.max(...dados.map((d) => d.h));
+    const minP = Math.min(...dados.map((d) => d.l));
+    for (let i = 0; i < dados.length; i++) {
+      const d = dados[i];
+      const cor = d.c >= d.o ? CORES.verde : CORES.vermelho;
+      ctx.strokeStyle = cor; ctx.fillStyle = cor;
+      const x = xDe(i);
+      ctx.beginPath();
+      ctx.moveTo(x, escalar(d.h, minP, maxP, f));
+      ctx.lineTo(x, escalar(d.l, minP, maxP, f));
+      ctx.stroke();
+      const yo = escalar(d.o, minP, maxP, f), yc = escalar(d.c, minP, maxP, f);
+      const larg = Math.max(1, passoX * 0.6);
+      ctx.fillRect(x - larg / 2, Math.min(yo, yc), larg, Math.max(1, Math.abs(yc - yo)));
+    }
+    textoFraco(ctx, nf(maxP, 0), largura - margemD + 6, f.y0 + 10);
+    textoFraco(ctx, nf(minP, 0), largura - margemD + 6, f.y1);
   }
-  textoFraco(ctx, nf(maxP, 0), largura - margemD + 6, fPreco.y0 + 10, CORES.fraco);
-  textoFraco(ctx, nf(minP, 0), largura - margemD + 6, fPreco.y1, CORES.fraco);
 
-  // open interest
-  const fOi = faixas[1];
-  const oiVals = dados.map((d) => d.oi).filter(Number.isFinite);
-  if (oiVals.length) {
-    const maxO = Math.max(...oiVals), minO = Math.min(...oiVals);
-    ctx.strokeStyle = CORES.ciano; ctx.lineWidth = 1.4; ctx.beginPath();
+  const linha = (chave, campo, cor, formato, marcaUm) => {
+    const f = caixas[chave];
+    if (!f) return;
+    const valores = dados.map((d) => d[campo]).filter(Number.isFinite);
+    if (!valores.length) { textoFraco(ctx, 'sem série', largura - margemD + 6, f.y0 + 10); return; }
+    const max = Math.max(...valores), min = Math.min(...valores);
+    ctx.strokeStyle = cor; ctx.lineWidth = 1.4; ctx.beginPath();
     let comecou = false;
     dados.forEach((d, i) => {
-      if (!Number.isFinite(d.oi)) return;
-      const ponto = escalar(d.oi, minO, maxO, fOi);
+      if (!Number.isFinite(d[campo])) return;
+      const ponto = escalar(d[campo], min, max, f);
       if (!comecou) { ctx.moveTo(xDe(i), ponto); comecou = true; } else ctx.lineTo(xDe(i), ponto);
     });
     ctx.stroke();
-    textoFraco(ctx, dinheiro(maxO), largura - margemD + 6, fOi.y0 + 10);
-    textoFraco(ctx, dinheiro(minO), largura - margemD + 6, fOi.y1);
-  } else textoFraco(ctx, 'sem série', largura - margemD + 6, fOi.y0 + 10);
-
-  // long/short
-  const fLsr = faixas[2];
-  const lsrVals = dados.map((d) => d.lsr).filter(Number.isFinite);
-  if (lsrVals.length) {
-    const maxL = Math.max(...lsrVals), minL = Math.min(...lsrVals);
-    ctx.strokeStyle = CORES.ambar; ctx.lineWidth = 1.4; ctx.beginPath();
-    let comecou = false;
-    dados.forEach((d, i) => {
-      if (!Number.isFinite(d.lsr)) return;
-      const ponto = escalar(d.lsr, minL, maxL, fLsr);
-      if (!comecou) { ctx.moveTo(xDe(i), ponto); comecou = true; } else ctx.lineTo(xDe(i), ponto);
-    });
-    ctx.stroke();
-    if (minL < 1 && maxL > 1) {
-      const yUm = escalar(1, minL, maxL, fLsr);
+    if (marcaUm && min < 1 && max > 1) {
+      const yUm = escalar(1, min, max, f);
       ctx.strokeStyle = CORES.fio; ctx.setLineDash([3, 3]); ctx.beginPath();
       ctx.moveTo(margemE, yUm); ctx.lineTo(largura - margemD, yUm); ctx.stroke(); ctx.setLineDash([]);
+      textoFraco(ctx, 'empate', largura - margemD + 6, yUm - 2);
     }
-    textoFraco(ctx, maxL.toFixed(2), largura - margemD + 6, fLsr.y0 + 10);
-    textoFraco(ctx, minL.toFixed(2), largura - margemD + 6, fLsr.y1);
-  } else textoFraco(ctx, 'sem série', largura - margemD + 6, fLsr.y0 + 10);
+    textoFraco(ctx, formato(max), largura - margemD + 6, f.y0 + 10);
+    textoFraco(ctx, formato(min), largura - margemD + 6, f.y1);
+  };
+  linha('oi', 'oi', CORES.ciano, dinheiro, false);
+  linha('lsr', 'lsr', CORES.ambar, (v) => v.toFixed(2), true);
 
-  // liquidações (barras)
-  const fLiq = faixas[3];
-  const maxLiq = Math.max(1, ...dados.map((d) => Math.max(d.liqLong || 0, d.liqShort || 0)));
-  const meio = (fLiq.y0 + fLiq.y1) / 2;
-  ctx.strokeStyle = CORES.fio; ctx.beginPath();
-  ctx.moveTo(margemE, meio); ctx.lineTo(largura - margemD, meio); ctx.stroke();
-  const metade = (fLiq.y1 - fLiq.y0) / 2 - 4;
-  dados.forEach((d, i) => {
-    const x = xDe(i), largBarra = Math.max(1, passoX * 0.6);
-    if (d.liqLong) {
-      ctx.fillStyle = CORES.vermelho;
-      const h = (d.liqLong / maxLiq) * metade;
-      ctx.fillRect(x - largBarra / 2, meio, largBarra, h);
-    }
-    if (d.liqShort) {
-      ctx.fillStyle = CORES.verde;
-      const h = (d.liqShort / maxLiq) * metade;
-      ctx.fillRect(x - largBarra / 2, meio - h, largBarra, h);
-    }
-  });
-  textoFraco(ctx, 'short ' + dinheiro(maxLiq), largura - margemD + 6, fLiq.y0 + 10, CORES.verde);
-  textoFraco(ctx, 'long ' + dinheiro(maxLiq), largura - margemD + 6, fLiq.y1, CORES.vermelho);
+  if (caixas.liq) {
+    const f = caixas.liq;
+    const maxLiq = Math.max(1, ...dados.map((d) => Math.max(d.liqLong || 0, d.liqShort || 0)));
+    const meio = (f.y0 + f.y1) / 2;
+    ctx.strokeStyle = CORES.fio; ctx.beginPath();
+    ctx.moveTo(margemE, meio); ctx.lineTo(largura - margemD, meio); ctx.stroke();
+    const metade = (f.y1 - f.y0) / 2 - 4;
+    dados.forEach((d, i) => {
+      const x = xDe(i), larg = Math.max(1, passoX * 0.6);
+      if (d.liqLong) { ctx.fillStyle = CORES.vermelho; ctx.fillRect(x - larg / 2, meio, larg, (d.liqLong / maxLiq) * metade); }
+      if (d.liqShort) {
+        ctx.fillStyle = CORES.verde;
+        const alto = (d.liqShort / maxLiq) * metade;
+        ctx.fillRect(x - larg / 2, meio - alto, larg, alto);
+      }
+    });
+    textoFraco(ctx, 'vendidos ' + dinheiro(maxLiq), largura - margemD + 6, f.y0 + 10, CORES.verde);
+    textoFraco(ctx, 'comprados ' + dinheiro(maxLiq), largura - margemD + 6, f.y1, CORES.vermelho);
+  }
 
-  // eixo de tempo
   const passos = Math.max(2, Math.floor(dados.length / 6));
   for (let i = 0; i < dados.length; i += passos) {
     const t = new Date(dados[i].t);
-    const marca = E.timeframe === '1d'
+    const marca = (E.timeframe === '1d' || dados.length > 120)
       ? t.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
       : t.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     textoFraco(ctx, marca, xDe(i) - 14, altura - 5);
   }
 
-  // linha de corte + tooltip
+  if (selecao) {
+    const a = Math.min(selecao.i0, selecao.i1), b = Math.max(selecao.i0, selecao.i1);
+    ctx.fillStyle = 'rgba(57,212,255,.14)';
+    ctx.fillRect(xDe(a), topo, Math.max(2, (b - a) * passoX), altura - base - topo);
+  }
+
   if (Number.isInteger(indiceCorte) && dados[indiceCorte]) {
     const x = xDe(indiceCorte);
-    ctx.strokeStyle = 'rgba(242,245,249,.35)';
+    ctx.strokeStyle = 'rgba(242,245,249,.4)';
     ctx.setLineDash([2, 3]); ctx.beginPath();
     ctx.moveTo(x, topo); ctx.lineTo(x, altura - base); ctx.stroke(); ctx.setLineDash([]);
     const d = dados[indiceCorte];
     if (saidaTooltip) {
       saidaTooltip.textContent = dataHora(d.t) +
         '  ·  preço ' + nf(d.c, 1) +
-        '  ·  OI ' + (Number.isFinite(d.oi) ? dinheiro(d.oi) : '—') +
-        '  ·  L/S ' + (Number.isFinite(d.lsr) ? d.lsr.toFixed(2) : '—') +
-        '  ·  liq long ' + dinheiro(d.liqLong) + ' / short ' + dinheiro(d.liqShort);
+        '  ·  apostado ' + (Number.isFinite(d.oi) ? dinheiro(d.oi) : '—') +
+        '  ·  comprados/vendidos ' + (Number.isFinite(d.lsr) ? d.lsr.toFixed(2) : '—') +
+        '  ·  estouros: comprados ' + dinheiro(d.liqLong) + ' / vendidos ' + dinheiro(d.liqShort);
     }
   }
   canvas._geo = { margemE, passoX, total: dados.length };
 }
 
+// Converte a posição do mouse no índice do período sob o cursor.
 function indiceNoCanvas(canvas, evento) {
   const geo = canvas._geo;
   if (!geo) return null;
@@ -1154,29 +1251,63 @@ function indiceNoCanvas(canvas, evento) {
   return limitar(Math.floor((x - geo.margemE) / geo.passoX), 0, geo.total - 1);
 }
 
-// Corte solto segue o mouse; clicar fixa no instante escolhido (e desfixa).
+// Um mesmo gesto serve para três coisas: mover o mouse lê, clicar fixa a
+// leitura, arrastar dá zoom. Duplo clique volta ao normal.
 function ligarCorte(canvas, saidaTooltip) {
   canvas.style.cursor = 'crosshair';
-  canvas.addEventListener('mousemove', (evento) => {
-    if (canvas._corteFixo !== null && canvas._corteFixo !== undefined) return;
+  let arrasto = null;
+
+  canvas.addEventListener('mousedown', (evento) => {
     const i = indiceNoCanvas(canvas, evento);
-    if (i !== null) desenharEmpilhado(canvas, saidaTooltip, i);
+    if (i !== null) arrasto = { i0: i, x0: evento.clientX };
   });
-  canvas.addEventListener('mouseleave', () => {
+
+  canvas.addEventListener('mousemove', (evento) => {
+    const i = indiceNoCanvas(canvas, evento);
+    if (i === null) return;
+    if (arrasto) return desenharEmpilhado(canvas, saidaTooltip, i, { i0: arrasto.i0, i1: i });
     if (canvas._corteFixo !== null && canvas._corteFixo !== undefined) return;
-    if (saidaTooltip) saidaTooltip.textContent = '';
-    desenharEmpilhado(canvas, saidaTooltip, null);
+    desenharEmpilhado(canvas, saidaTooltip, i);
   });
-  canvas.addEventListener('click', (evento) => {
+
+  window.addEventListener('mouseup', (evento) => {
+    if (!arrasto) return;
+    const solto = arrasto;
+    arrasto = null;
+    const i = indiceNoCanvas(canvas, evento);
+    const andou = Math.abs(evento.clientX - solto.x0);
+
+    if (i !== null && andou > 12 && Math.abs(i - solto.i0) >= 3) {
+      const base = E.recorte ? E.recorte.i0 : 0;
+      const a = base + Math.min(solto.i0, i);
+      const b = base + Math.max(solto.i0, i);
+      E.recorte = { i0: a, i1: b };
+      canvas._corteFixo = null;
+      redesenhar();
+      toast('Zoom em ' + (b - a + 1) + ' períodos. Duplo clique volta.');
+      return;
+    }
+    if (i === null) return;
     if (canvas._corteFixo !== null && canvas._corteFixo !== undefined) {
       canvas._corteFixo = null;
-      desenharEmpilhado(canvas, saidaTooltip, indiceNoCanvas(canvas, evento));
-      toast('Corte solto: volta a seguir o mouse.');
+      desenharEmpilhado(canvas, saidaTooltip, i);
     } else {
-      canvas._corteFixo = indiceNoCanvas(canvas, evento);
-      desenharEmpilhado(canvas, saidaTooltip, canvas._corteFixo);
-      toast('Corte fixado. Clique de novo para soltar.');
+      canvas._corteFixo = i;
+      desenharEmpilhado(canvas, saidaTooltip, i);
     }
+  });
+
+  canvas.addEventListener('dblclick', () => {
+    if (!E.recorte) return;
+    E.recorte = null;
+    redesenhar();
+    toast('Zoom desfeito.');
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    if (arrasto || canvas._corteFixo !== null && canvas._corteFixo !== undefined) return;
+    if (saidaTooltip) saidaTooltip.textContent = '';
+    desenharEmpilhado(canvas, saidaTooltip, null);
   });
 }
 
@@ -1325,13 +1456,13 @@ function fatoresDePressao() {
   const s = calcularTermometro();
   const talvez = (condicao, valor) => (condicao ? limitar(valor, -1, 1) : null);
   return [
-    { nome: 'Fluxo (Δ OI 1h)', v: talvez(Number.isFinite(E.deltaOi1h), (E.deltaOi1h || 0) / 1.5), ajuda: 'Posição entrando ou saindo na última hora. Entrada acompanhando alta é dinheiro novo.' },
-    { nome: 'Livro', v: talvez(Boolean(E.livro), (E.livro ? E.livro.desequilibrio : 0) * 2), ajuda: 'Ordens de compra menos as de venda dentro de ±2% do preço, somando Binance, Bybit e OKX.' },
-    { nome: 'Estouros', v: talvez(totalLiq > 0, totalLiq ? (liq1h.shortUsd - liq1h.longUsd) / totalLiq : 0), ajuda: 'Quem está sendo liquidado na última hora. Short estourando empurra o preço para cima.' },
-    { nome: 'Funding', v: talvez(Number.isFinite(E.funding), -(E.funding || 0) / 0.0004), ajuda: 'Funding muito positivo significa comprado lotado pagando para ficar na posição — fica caro e vira risco de estouro.' },
-    { nome: 'Varejo', v: talvez(Number.isFinite(E.lsr.varejo), (1 - E.lsr.varejo) / 0.6), ajuda: 'Razão long/short das contas de varejo. Varejo muito comprado costuma funcionar como sinal contrário.' },
-    { nome: 'Grandes contas', v: talvez(Number.isFinite(E.lsr.grandesPosicoes), (E.lsr.grandesPosicoes - 1) / 0.6), ajuda: 'Posição das maiores contas da Binance. Só existe quando a Binance responde.' },
-    { nome: 'Sentimento', v: talvez(Number.isFinite(s.nota), s.nota / 60), ajuda: 'O termômetro da view 4: medo e ganância, notícias, Fed e preditivo.' }
+    { termo: 'doi', nome: rotulo('Dinheiro entrando', 'Fluxo (Δ OI 1h)'), v: talvez(Number.isFinite(E.deltaOi1h), (E.deltaOi1h || 0) / 1.5), ajuda: 'Posição entrando ou saindo na última hora. Entrada acompanhando alta é dinheiro novo.' },
+    { termo: 'livro', nome: rotulo('Ofertas no livro', 'Livro'), v: talvez(Boolean(E.livro), (E.livro ? E.livro.desequilibrio : 0) * 2), ajuda: 'Ordens de compra menos as de venda dentro de ±2% do preço, somando Binance, Bybit e OKX.' },
+    { termo: 'liquidacao', nome: 'Estouros', v: talvez(totalLiq > 0, totalLiq ? (liq1h.shortUsd - liq1h.longUsd) / totalLiq : 0), ajuda: 'Quem está sendo liquidado na última hora. Short estourando empurra o preço para cima.' },
+    { termo: 'funding', nome: rotulo('Custo da aposta', 'Funding'), v: talvez(Number.isFinite(E.funding), -(E.funding || 0) / 0.0004), ajuda: 'Funding muito positivo significa comprado lotado pagando para ficar na posição — fica caro e vira risco de estouro.' },
+    { termo: 'lsr', nome: 'Varejo', v: talvez(Number.isFinite(E.lsr.varejo), (1 - E.lsr.varejo) / 0.6), ajuda: 'Razão long/short das contas de varejo. Varejo muito comprado costuma funcionar como sinal contrário.' },
+    { termo: 'lsr', nome: 'Grandes contas', v: talvez(Number.isFinite(E.lsr.grandesPosicoes), (E.lsr.grandesPosicoes - 1) / 0.6), ajuda: 'Posição das maiores contas da Binance. Só existe quando a Binance responde.' },
+    { termo: 'termometro', nome: 'Sentimento', v: talvez(Number.isFinite(s.nota), s.nota / 60), ajuda: 'O termômetro da view 4: medo e ganância, notícias, Fed e preditivo.' }
   ];
 }
 
@@ -1372,40 +1503,63 @@ function pintarEstado() {
   $('#estadoTexto').textContent = E.linguagem === 'tecnico' ? e.tecnico : e.simples;
 }
 
+function rotulo(simples, tecnico) {
+  return E.modo === 'simples' ? simples : tecnico;
+}
+
+// Cada linha carrega o termo que ela explica: clicar abre a gaveta.
+function linhaDado(termo, texto, valor, classe) {
+  return '<div class="linha" data-explica="' + termo + '">' +
+    '<span class="k">' + texto + '</span>' +
+    '<span class="v mono ' + (classe || '') + '">' + valor + '</span></div>';
+}
+
 function pintarRodape() {
-  const linha = (k, v, classe) => '<div class="linha"><span class="k">' + k + '</span><span class="mono ' + (classe || '') + '">' + v + '</span></div>';
   $('#posicionamento').innerHTML =
-    linha('Varejo long/short', E.lsr.varejo ? E.lsr.varejo.toFixed(2) : '—', E.lsr.varejo > 1 ? 'ambar' : '') +
-    linha('Grandes contas', E.lsr.grandesContas ? E.lsr.grandesContas.toFixed(2) : '—') +
-    linha('Grandes posições', E.lsr.grandesPosicoes ? E.lsr.grandesPosicoes.toFixed(2) : '—') +
-    linha('Δ OI 1h', pct(E.deltaOi1h), classeDe(E.deltaOi1h)) +
-    linha('Δ OI 24h', pct(E.deltaOi24h), classeDe(E.deltaOi24h));
+    linhaDado('lsr', rotulo('Quem está apostando na alta', 'Varejo long/short'),
+      E.lsr.varejo ? E.lsr.varejo.toFixed(2) : '—', E.lsr.varejo > 1 ? 'ambar' : '') +
+    linhaDado('lsr', rotulo('Contas grandes', 'Grandes contas'),
+      E.lsr.grandesContas ? E.lsr.grandesContas.toFixed(2) : '—') +
+    linhaDado('lsr', rotulo('Dinheiro das contas grandes', 'Grandes posições'),
+      E.lsr.grandesPosicoes ? E.lsr.grandesPosicoes.toFixed(2) : '—') +
+    linhaDado('doi', rotulo('Mudança do dinheiro apostado (1h)', 'Δ open interest 1h'),
+      pct(E.deltaOi1h), classeDe(E.deltaOi1h)) +
+    linhaDado('doi', rotulo('Mudança do dinheiro apostado (24h)', 'Δ open interest 24h'),
+      pct(E.deltaOi24h), classeDe(E.deltaOi24h));
 
   const porEx = E.oi.porExchange;
+  const exchanges = E.modo === 'simples' ? '' :
+    linhaDado('oi', 'OI Binance', porEx.binance ? dinheiro(porEx.binance.usd) : '—') +
+    linhaDado('oi', 'OI Bybit', porEx.bybit ? dinheiro(porEx.bybit.usd) : '—') +
+    linhaDado('oi', 'OI OKX', porEx.okx ? dinheiro(porEx.okx.usd) : '—') +
+    linhaDado('oi', 'OI Hyperliquid', porEx.hyperliquid ? dinheiro(porEx.hyperliquid.usd) : '—');
+
   $('#fundingBasis').innerHTML =
-    linha('Funding', Number.isFinite(E.funding) ? (E.funding * 100).toFixed(4) + '%' : '—', classeDe(E.funding)) +
-    linha('Funding ao ano', Number.isFinite(E.funding) ? pct(E.funding * 3 * 365 * 100, 1) : '—', classeDe(E.funding)) +
-    linha('Basis', pct(E.basis, 3), classeDe(E.basis)) +
-    linha('Volume 24h', dinheiro(E.volume24h)) +
-    linha('OI Binance', porEx.binance ? dinheiro(porEx.binance.usd) : '—') +
-    linha('OI Bybit', porEx.bybit ? dinheiro(porEx.bybit.usd) : '—') +
-    linha('OI OKX', porEx.okx ? dinheiro(porEx.okx.usd) : '—') +
-    linha('OI Hyperliquid', porEx.hyperliquid ? dinheiro(porEx.hyperliquid.usd) : '—');
+    linhaDado('funding', rotulo('Custo de apostar na alta', 'Funding'),
+      Number.isFinite(E.funding) ? (E.funding * 100).toFixed(4) + '%' : '—', classeDe(E.funding)) +
+    linhaDado('funding', rotulo('Esse custo em um ano', 'Funding ao ano'),
+      Number.isFinite(E.funding) ? pct(E.funding * 3 * 365 * 100, 1) : '—', classeDe(E.funding)) +
+    linhaDado('basis', rotulo('Futuro acima ou abaixo do à vista', 'Basis'),
+      pct(E.basis, 3), classeDe(E.basis)) +
+    linhaDado('volume', rotulo('Quanto girou em 24h', 'Volume 24h'), dinheiro(E.volume24h)) +
+    linhaDado('oi', rotulo('Dinheiro apostado no total', 'Open interest total'), dinheiro(E.oi.total)) +
+    exchanges;
 
   const h1 = janelaLiquidacoes(1), h24 = janelaLiquidacoes(24);
   $('#liquidacoesRodape').innerHTML =
-    linha('Long 1h', dinheiro(h1.longUsd), 'vermelho') +
-    linha('Short 1h', dinheiro(h1.shortUsd), 'verde') +
-    linha('Long 24h', dinheiro(h24.longUsd), 'vermelho') +
-    linha('Short 24h', dinheiro(h24.shortUsd), 'verde') +
-    linha('Eventos 24h', String(E.liquidacoes.length)) +
-    '<div class="aviso">Fontes: Bybit (WebSocket), OKX e Gate.io. A Binance fica de fora: o stream de futuros não entrega mensagem em várias regiões, não há REST público de liquidação agregada e o arquivo liquidationSnapshot saiu do ar. Preferimos faltar dado a inventar número.</div>';
+    linhaDado('liquidacao', rotulo('Estourou quem apostava na alta (1h)', 'Long liquidado 1h'), dinheiro(h1.longUsd), 'vermelho') +
+    linhaDado('liquidacao', rotulo('Estourou quem apostava na queda (1h)', 'Short liquidado 1h'), dinheiro(h1.shortUsd), 'verde') +
+    linhaDado('liquidacao', rotulo('Alta estourada em 24h', 'Long liquidado 24h'), dinheiro(h24.longUsd), 'vermelho') +
+    linhaDado('liquidacao', rotulo('Queda estourada em 24h', 'Short liquidado 24h'), dinheiro(h24.shortUsd), 'verde') +
+    linhaDado('liquidacao', 'Eventos em 24h', String(E.liquidacoes.length)) +
+    '<div class="aviso" data-nivel="avancado">Fontes: Bybit (WebSocket), OKX e Gate.io. A Binance fica de fora: o stream de futuros não entrega mensagem em várias regiões, não há REST público de liquidação agregada e o arquivo liquidationSnapshot saiu do ar. Preferimos faltar dado a inventar número.</div>';
 
   const muros = (E.livro ? E.livro.muros : []).map((m) =>
-    '<div class="linha"><span class="k mono">' + nf(m.px, 0) + '</span>' +
-    '<span class="mono ' + (m.lado === 'compra' ? 'verde' : 'vermelho') + '">' + dinheiro(m.usd) + '</span></div>').join('');
-  $('#muros').innerHTML = muros || '<div class="fraco">carregando…</div>';
-  $('#murosGrande').innerHTML = muros || '<div class="fraco">carregando…</div>';
+    '<div class="linha" data-explica="muro"><span class="k mono">' + nf(m.px, 0) + '</span>' +
+    '<span class="v mono ' + (m.lado === 'compra' ? 'verde' : 'vermelho') + '">' + dinheiro(m.usd) + '</span></div>').join('');
+  const vazio = '<div class="vazio">esperando o livro de ofertas…</div>';
+  $('#muros').innerHTML = muros || vazio;
+  $('#murosGrande').innerHTML = muros || vazio;
 }
 
 // ================================================================== sentimento
@@ -1446,10 +1600,13 @@ function pintarTermometro() {
       (t.cobertura < 0.99 ? '<div class="aviso">Faltando ' + Math.round((1 - t.cobertura) * 100) + '% dos pesos: a nota foi normalizada pelo que existe.</div>' : '')
     : '<span class="fraco">rode as análises para preencher</span>';
 
-  const notas = t.partes.map((p) => '<div class="linha"><span class="k">' + escapar(p.nome) + '</span><span class="mono ' + classeDe(p.valor) + '">' + p.valor.toFixed(0) + '</span></div>').join('');
+  const TERMOS = { fng: 'fng', noticias: 'ia', fed: 'ia', preditivo: 'preditivo' };
+  const notas = t.partes.map((p) => linhaDado(TERMOS[p.chave] || 'termometro',
+    rotulo(p.chave === 'fng' ? 'Medo e ganância' : p.nome, p.nome), p.valor.toFixed(0), classeDe(p.valor))).join('');
   $('#notasSentimento').innerHTML = (t.nota !== null
-    ? '<div class="linha"><span class="k">Termômetro</span><span class="mono" style="color:' + corDe(t.nota) + '">' + t.nota.toFixed(0) + ' · ' + rotuloTermometro(t.nota) + '</span></div>'
-    : '') + notas || '<div class="fraco">sem dados ainda</div>';
+    ? linhaDado('termometro', rotulo('Humor do mercado', 'Termômetro'),
+        t.nota.toFixed(0) + ' · ' + rotuloTermometro(t.nota), classeDe(t.nota))
+    : '') + notas || '<div class="vazio">esperando os dados de sentimento…</div>';
 }
 
 function desenharFng(canvas) {
@@ -1569,11 +1726,23 @@ function pintarPreditivo() {
 function pintarMacro() {
   const p = E.preditivo;
   if (!p || !p.macro) { $('#blocoMacro').innerHTML = '<div class="fraco">carregando…</div>'; return; }
-  $('#blocoMacro').innerHTML = p.macro.ativos.filter((a) => a.chave !== 'btc').map((a) =>
-    '<div class="linha"><span class="k">' + escapar(a.nome) + '</span>' +
-    '<span class="mono ' + classeDe(a.var1d) + '">' + pct(a.var1d, 1) + '</span></div>').join('') +
-    (p.dvol && p.dvol.atual ? '<div class="linha"><span class="k">DVOL (Deribit)</span><span class="mono">' + p.dvol.atual + ' <span class="' + classeDe(-p.dvol.var7d) + '">' + pct(p.dvol.var7d, 1) + ' 7d</span></span></div>' : '') +
-    (Number.isFinite(p.nota) ? '<div class="linha"><span class="k">Nota preditiva</span><span class="mono" style="color:' + corDe(p.nota) + '">' + p.nota + '</span></div>' : '');
+  const NOMES = {
+    juro10a: ['Juro dos EUA (10 anos)', 'Juro 10 anos EUA'],
+    dolar: ['Força do dólar', 'Índice do dólar (DXY)'],
+    nasdaq: ['Bolsa de tecnologia', 'Nasdaq'],
+    ouro: ['Ouro', 'Ouro']
+  };
+  $('#blocoMacro').innerHTML = p.macro.ativos.filter((a) => a.chave !== 'btc').map((a) => {
+    const nomes = NOMES[a.chave] || [a.nome, a.nome];
+    return linhaDado('preditivo', rotulo(nomes[0], nomes[1]), pct(a.var1d, 1), classeDe(a.var1d));
+  }).join('') +
+    (p.dvol && p.dvol.atual
+      ? linhaDado('dvol', rotulo('Oscilação esperada', 'DVOL (Deribit)'),
+          p.dvol.atual + ' <span class="' + classeDe(-p.dvol.var7d) + '">' + pct(p.dvol.var7d, 1) + ' 7d</span>')
+      : '') +
+    (Number.isFinite(p.nota)
+      ? linhaDado('preditivo', rotulo('Ambiente lá fora', 'Nota preditiva'), String(p.nota), classeDe(p.nota))
+      : '');
 }
 
 // ================================================================== snapshots
@@ -1874,11 +2043,16 @@ document.addEventListener('keydown', (evento) => {
     return trocarTimeframe(ORDEM_TF[i]);
   }
   if (k === '?') return $('#ajuda').classList.toggle('aberto');
-  if (k === 'Escape') $$('.sobreposicao').forEach((s) => s.classList.remove('aberto'));
+  if (k === 'g' || k === 'G') return explicar('resumo');
+  if (k === 'Escape') {
+    $$('.sobreposicao').forEach((s) => s.classList.remove('aberto'));
+    $('#gaveta').classList.remove('aberta');
+  }
 });
 
 function redesenhar() {
   pintarTopo();
+  resumoHumano();
   pintarEstado();
   pintarPressao();
   pintarRodape();
@@ -2000,6 +2174,282 @@ window.addEventListener('resize', () => {
   temporizadorResize = setTimeout(() => { redesenhar(); montarSparklines(); }, 180);
 });
 
+// ====================================================== glossário e gaveta
+// Todo número do painel tem uma explicação em português comum. A gaveta abre
+// clicando no dado, não em algum menu escondido.
+const GLOSSARIO = {
+  resumo: {
+    titulo: 'Como ler este painel',
+    oQueE: 'O painel olha o mercado de futuros de bitcoin: onde as pessoas estão apostando, quanto dinheiro está em jogo e quem está sendo forçado a sair da posição.',
+    comoLer: 'Comece pelo texto grande do topo — ele resume tudo em duas frases. Depois desça: cada bloco detalha um pedaço desse resumo. Clique em qualquer número para ler o que ele significa.',
+    fonte: 'Nada aqui é recomendação de compra ou venda. É leitura de mercado.'
+  },
+  preco: {
+    titulo: 'Preço',
+    oQueE: 'O preço do bitcoin agora, atualizado ao vivo pela corretora Bybit.',
+    comoLer: 'O número ao lado é a variação nas últimas 24 horas. Verde subiu, vermelho caiu.',
+    agora: () => (Number.isFinite(E.preco) ? 'Agora: ' + nf(E.preco, 1) + ' dólares, ' + pct(E.var24h) + ' em 24h.' : null)
+  },
+  oi: {
+    titulo: 'Dinheiro apostado (open interest)',
+    oQueE: 'A soma de todas as apostas abertas no mercado futuro — posições que ainda não foram fechadas. É o tamanho do jogo.',
+    comoLer: 'Subindo junto com o preço significa gente nova entrando. Caindo junto com o preço significa gente saindo, fechando posição. O número sozinho diz pouco; o que importa é a direção.',
+    agora: () => (E.oi.total ? 'Agora: ' + dinheiro(E.oi.total) + ' de dólares apostados, somando quatro corretoras.' : null)
+  },
+  doi: {
+    titulo: 'Mudança do dinheiro apostado',
+    oQueE: 'Quanto o total apostado cresceu ou encolheu na última hora e nas últimas 24 horas.',
+    comoLer: 'Preço subindo + apostado subindo = alta com dinheiro novo. Preço subindo + apostado caindo = gente fechando aposta de queda, costuma durar pouco. Preço caindo + apostado caindo = descarrego, todo mundo saindo.',
+    agora: () => (Number.isFinite(E.deltaOi1h) ? 'Agora: ' + pct(E.deltaOi1h) + ' na última hora, ' + pct(E.deltaOi24h) + ' em 24h.' : null)
+  },
+  funding: {
+    titulo: 'Custo de apostar na alta (funding)',
+    oQueE: 'A cada 8 horas, quem está apostando na alta paga (ou recebe) uma taxa de quem está apostando na queda. Isso mantém o preço do futuro colado no preço à vista.',
+    comoLer: 'Positivo = quem aposta na alta está pagando, ou seja o mercado está lotado de otimista. Muito positivo por muito tempo costuma anteceder tombo. Negativo = o contrário. Perto de zero = equilíbrio.',
+    agora: () => (Number.isFinite(E.funding)
+      ? 'Agora: ' + (E.funding * 100).toFixed(4) + '% a cada 8h, o que dá ' + pct(E.funding * 3 * 365 * 100, 1) + ' ao ano. ' +
+        (Math.abs(E.funding * 100) < 0.01 ? 'Está baixo: ninguém está pagando caro para manter a aposta.' : 'Está acima do normal.')
+      : null)
+  },
+  basis: {
+    titulo: 'Futuro contra o à vista (basis)',
+    oQueE: 'A diferença percentual entre o preço do contrato futuro e o preço de compra imediata do bitcoin.',
+    comoLer: 'Futuro acima do à vista = otimismo, gente pagando prêmio para apostar na alta. Futuro abaixo = pessimismo ou pressa para vender.',
+    agora: () => (Number.isFinite(E.basis) ? 'Agora: ' + pct(E.basis, 3) + '.' : null)
+  },
+  liquidacao: {
+    titulo: 'Estouro de posição (liquidação)',
+    oQueE: 'Quando alguém aposta com dinheiro emprestado e o preço anda contra, a corretora fecha a posição à força. Isso é uma liquidação — um estouro.',
+    comoLer: 'Muito estouro de quem apostava na alta empurra o preço ainda mais para baixo (venda forçada). Muito estouro de quem apostava na queda empurra para cima. É combustível de movimento rápido.',
+    agora: () => {
+      const j = janelaLiquidacoes(1);
+      if (!j.total) return 'Na última hora não houve estouro registrado.';
+      const lado = j.longUsd > j.shortUsd ? 'de quem apostava na alta' : 'de quem apostava na queda';
+      return 'Na última hora: ' + dinheiro(j.total) + ' de dólares estourados, a maior parte ' + lado + '.';
+    },
+    fonte: 'Vem da Bybit, OKX e Gate.io. A Binance não publica esse dado de forma confiável, então o total real é maior que o mostrado aqui.'
+  },
+  lsr: {
+    titulo: 'Comprados contra vendidos',
+    oQueE: 'A razão entre quantas contas estão apostando na alta e quantas estão apostando na queda. Acima de 1 = mais gente na alta.',
+    comoLer: 'O varejo costuma funcionar como sinal contrário: quando quase todo mundo está comprado, sobra pouca gente para comprar mais. As contas grandes valem mais atenção que a quantidade de contas.',
+    agora: () => (Number.isFinite(E.lsr.varejo)
+      ? 'Agora: ' + E.lsr.varejo.toFixed(2) + ' no varejo' + (E.lsr.varejo > 1 ? ' — mais gente apostando na alta.' : ' — mais gente apostando na queda.')
+      : null)
+  },
+  livro: {
+    titulo: 'Livro de ofertas',
+    oQueE: 'A fila de ordens de compra e de venda esperando para ser executada, dentro de 2% do preço atual.',
+    comoLer: 'Mais ordem de compra que de venda perto do preço = há gente segurando embaixo. O contrário = há gente pesando em cima. Ordens podem ser retiradas a qualquer momento, então isso muda rápido.',
+    agora: () => (E.livro
+      ? 'Agora: ' + dinheiro(E.livro.compraUsd) + ' querendo comprar contra ' + dinheiro(E.livro.vendaUsd) + ' querendo vender.'
+      : null)
+  },
+  muro: {
+    titulo: 'Muro',
+    oQueE: 'Uma concentração grande de ordens num preço específico — funciona como um obstáculo que segura o movimento.',
+    comoLer: 'Muro de compra abaixo do preço é chão; muro de venda acima é teto. Muro que some quando o preço chega perto era blefe.',
+    agora: () => (E.livro && E.livro.muros.length
+      ? 'Maior muro agora: ' + dinheiro(E.livro.muros[0].usd) + ' em ' + nf(E.livro.muros[0].px, 0) + ' (' + E.livro.muros[0].lado + ').'
+      : null)
+  },
+  volume: {
+    titulo: 'Volume',
+    oQueE: 'Quanto dinheiro trocou de mãos nas últimas 24 horas.',
+    comoLer: 'Movimento de preço com volume alto tem mais convicção. Movimento com volume baixo costuma ser mais fácil de reverter.',
+    agora: () => (E.volume24h ? 'Agora: ' + dinheiro(E.volume24h) + ' de dólares em 24h.' : null)
+  },
+  estado: {
+    titulo: 'Estado do mercado',
+    oQueE: 'Uma classificação em cinco caixas, cruzando a variação do preço em 24h com a variação do dinheiro apostado no mesmo período.',
+    comoLer: 'Alta com dinheiro novo é a mais saudável. Alta sem lastro é frágil. Queda com convicção é venda de verdade. Descarrego é gente sendo obrigada a sair. Sem direção é mercado esperando.',
+    agora: () => 'Agora: ' + classificarEstado().nome + '.'
+  },
+  pressao: {
+    titulo: 'De onde vem a pressão',
+    oQueE: 'Sete fatores medidos separadamente, cada um empurrando para cima (verde) ou para baixo (vermelho), numa escala de -1 a +1.',
+    comoLer: 'Nenhum fator sozinho decide nada. Serve para ver se o mercado está puxando junto ou brigando consigo mesmo. Fator marcado como "sem dado" não entra na conta.',
+    fonte: 'Os pesos são iguais entre os fatores. É uma organização de leitura, não um modelo testado.'
+  },
+  termometro: {
+    titulo: 'Termômetro de sentimento',
+    oQueE: 'Uma nota de -100 a +100 juntando quatro coisas: o índice de medo e ganância (30%), a leitura das notícias por IA (25%), a leitura dos documentos do Fed por IA (25%) e a nota preditiva (20%).',
+    comoLer: 'Negativo é ambiente de medo, positivo é ambiente de ganância. Ganância extrema costuma marcar topo, medo extremo costuma marcar fundo — mas "costuma" não é "sempre".',
+    agora: () => {
+      const t = calcularTermometro();
+      if (t.nota === null) return 'Ainda sem dado suficiente.';
+      return 'Agora: ' + t.nota.toFixed(0) + ' (' + rotuloTermometro(t.nota) + ')' +
+        (t.cobertura < 0.99 ? '. Faltam as análises por IA, então a nota usa só o que existe.' : '.');
+    },
+    fonte: 'Os pesos são julgamento do autor, não resultado de teste histórico.'
+  },
+  fng: {
+    titulo: 'Índice de medo e ganância',
+    oQueE: 'Um índice público de 0 a 100 que resume o humor do mercado cripto, calculado pelo site alternative.me.',
+    comoLer: 'Abaixo de 25 é medo extremo, acima de 75 é ganância extrema. O gráfico mostra 60 dias para você ver se o humor mudou rápido ou está parado.',
+    agora: () => (E.fng && E.fng.atual ? 'Agora: ' + E.fng.atual.valor + ' de 100 (' + E.fng.atual.rotulo + ').' : null)
+  },
+  preditivo: {
+    titulo: 'Nota preditiva',
+    oQueE: 'Uma conta fechada, sem IA, que soma cinco coisas: as apostas sobre a próxima reunião de juros do Fed, o dólar, o juro de 10 anos americano, a Nasdaq e a volatilidade implícita do bitcoin.',
+    comoLer: 'Positivo = o ambiente lá fora está a favor de ativos de risco. Negativo = está contra. A tabela mostra quanto cada peça contribuiu, então dá para discordar de uma delas.',
+    agora: () => (E.preditivo && Number.isFinite(E.preditivo.nota) ? 'Agora: ' + E.preditivo.nota + ' (' + E.preditivo.rotulo + ').' : null),
+    fonte: 'Os coeficientes são julgamento do autor, não resultado de backtest.'
+  },
+  dvol: {
+    titulo: 'DVOL (volatilidade esperada)',
+    oQueE: 'Um índice da corretora Deribit que mede quanta oscilação o mercado de opções está precificando para os próximos 30 dias.',
+    comoLer: 'Subindo = o mercado espera solavanco. Caindo = espera calmaria. Costuma disparar em queda forte.',
+    agora: () => (E.preditivo && E.preditivo.dvol && E.preditivo.dvol.atual ? 'Agora: ' + E.preditivo.dvol.atual + ', ' + pct(E.preditivo.dvol.var7d, 1) + ' em 7 dias.' : null)
+  },
+  ia: {
+    titulo: 'Leitura por IA',
+    oQueE: 'O servidor busca manchetes das últimas 36 horas e os documentos recentes do banco central americano, e pede ao Gemini que resuma o clima em português.',
+    comoLer: 'A nota vai de -100 a +100. Leia os pontos, não só o número — é ali que está o motivo. A IA pode errar ênfase; ela lê texto, não adivinha o futuro.',
+    agora: () => {
+      const an = (E.sentimento && E.sentimento.analises) || {};
+      if (!an.noticias && !an.fed) return 'Nenhuma análise rodada ainda. Vá na view 4 e clique em "rodar análise".';
+      return 'Última leitura de notícias: ' + (an.noticias ? dataHora(an.noticias.t) : 'nunca') +
+        '. Do Fed: ' + (an.fed ? dataHora(an.fed.t) : 'nunca') + '.';
+    },
+    fonte: 'Precisa de uma chave gratuita do Gemini, cadastrada no botão Ajustes.'
+  },
+  snapshot: {
+    titulo: 'Snapshot',
+    oQueE: 'Uma foto completa do mercado no instante em que você aperta S: preço, dinheiro apostado, livro, estouros, sentimento e preditivo, mais a sua anotação.',
+    comoLer: 'Serve para estudar depois: "o que eu estava vendo quando achei que era topo?". Todos os números vêm do servidor, sempre do mesmo jeito, para as linhas serem comparáveis entre si.',
+    fonte: 'A captura é manual de propósito. Exporte em CSV para abrir numa planilha.'
+  },
+  alerta: {
+    titulo: 'Alertas',
+    oQueE: 'Cinco regras que o painel verifica a cada 15 segundos enquanto a aba está aberta.',
+    comoLer: 'Ajuste o número de cada regra ao seu gosto e desligue as que não interessam. Cada regra fica em silêncio por 10 minutos depois de disparar, para não virar spam.',
+    fonte: 'Só funciona com o painel aberto no navegador. Os coletores do servidor rodam sempre, mas quem dispara alerta é a página.'
+  },
+  backup: {
+    titulo: 'Backup',
+    oQueE: 'A cada 6 horas o servidor compacta os arquivos de dados numa pasta com data e hora, guardando as 14 cópias mais novas.',
+    comoLer: 'Se algum arquivo corromper, é só descompactar a cópia mais recente por cima.',
+    fonte: 'As cópias incluem a chave da IA, que fica em data/config.json. Trate a pasta backups/ como material sigiloso.'
+  },
+  grafico: {
+    titulo: 'O gráfico empilhado',
+    oQueE: 'Quatro faixas dividindo o mesmo eixo de tempo: preço em velas, dinheiro apostado, razão comprados/vendidos e os estouros.',
+    comoLer: 'Ler as quatro juntas é o ponto: um preço que sobe com o dinheiro apostado subindo conta uma história diferente de um preço que sobe com estouro de vendidos. Passe o mouse para ver os quatro valores do mesmo instante.',
+    fonte: 'Arraste para dar zoom, duplo clique volta, clique fixa a linha de leitura. Os botões em cima ligam e desligam cada faixa.'
+  }
+};
+
+let historicoGaveta = [];
+
+function explicar(chave) {
+  const item = GLOSSARIO[chave];
+  if (!item) return;
+  historicoGaveta.push(chave);
+  $('#gavetaTitulo').textContent = item.titulo;
+  let agora = null;
+  try { agora = item.agora ? item.agora() : null; } catch { agora = null; }
+  $('#gavetaCorpo').innerHTML =
+    '<h4>O que é</h4><p>' + escapar(item.oQueE) + '</p>' +
+    (item.comoLer ? '<h4>Como ler</h4><p>' + escapar(item.comoLer) + '</p>' : '') +
+    (agora ? '<div class="agora">' + escapar(agora) + '</div>' : '') +
+    (item.fonte ? '<h4>Vale saber</h4><p>' + escapar(item.fonte) + '</p>' : '') +
+    '<h4>Outros termos</h4><div class="indice">' +
+    Object.keys(GLOSSARIO).filter((k) => k !== chave)
+      .map((k) => '<button data-explica="' + k + '">' + escapar(GLOSSARIO[k].titulo) + '</button>').join('') +
+    '</div>';
+  $('#gaveta').classList.add('aberta');
+}
+
+document.addEventListener('click', (evento) => {
+  const alvo = evento.target.closest('[data-explica]');
+  if (!alvo) return;
+  evento.stopPropagation();
+  explicar(alvo.dataset.explica);
+});
+$('#fecharGaveta').onclick = () => $('#gaveta').classList.remove('aberta');
+
+// ============================================== resumo em português comum
+function resumoHumano() {
+  const frases = [];
+  const estado = classificarEstado();
+
+  if (Number.isFinite(E.preco) && Number.isFinite(E.var24h)) {
+    frases.push('O bitcoin está em <b>' + nf(E.preco, 0) + ' dólares</b>, ' +
+      (E.var24h >= 0 ? 'subindo ' : 'caindo ') + '<b class="' + classeDe(E.var24h) + '">' +
+      Math.abs(E.var24h).toFixed(1) + '%</b> nas últimas 24 horas.');
+  }
+
+  if (estado.nome !== 'sem direção') {
+    frases.push(estado.simples);
+  } else if (Number.isFinite(E.deltaOi24h)) {
+    frases.push('Preço e apostas andando de lado: o mercado está esperando alguma coisa acontecer.');
+  }
+
+  const j = janelaLiquidacoes(1);
+  if (j.total > 0) {
+    const maior = j.longUsd > j.shortUsd;
+    frases.push('Na última hora, <b>' + dinheiro(j.total) + ' de dólares</b> em posições foram estouradas — ' +
+      'a maior parte de quem apostava na <b>' + (maior ? 'alta' : 'queda') + '</b>, o que ' +
+      (maior ? 'empurra o preço para baixo' : 'empurra o preço para cima') + ' enquanto durar.');
+  }
+
+  if (Number.isFinite(E.funding)) {
+    const f = E.funding * 100;
+    frases.push(Math.abs(f) < 0.012
+      ? 'Manter uma aposta comprada está <b>barato</b> agora, sinal de que o mercado não está eufórico.'
+      : (f > 0
+        ? 'Quem aposta na alta está pagando <b>caro</b> para manter a posição — mercado esticado para o lado comprado.'
+        : 'Quem aposta na queda está pagando para manter a posição — mercado esticado para o lado vendido.'));
+  }
+
+  const t = calcularTermometro();
+  if (t.nota !== null) {
+    frases.push('O humor geral está em <b>' + rotuloTermometro(t.nota) + '</b>' +
+      (t.cobertura < 0.99 ? ' (medido só pelo que está disponível — as leituras por IA não foram rodadas).' : '.'));
+  }
+
+  const alvo = $('#resumoHumano');
+  if (!frases.length) {
+    alvo.innerHTML = '<span class="fraco">Esperando os primeiros dados do mercado…</span>';
+    return;
+  }
+  alvo.innerHTML = frases.map((f) => '<p>' + f + '</p>').join('') +
+    '<div class="rodapeResumo fraco">Atualizado ' + hora(Date.now()) +
+    ' · clique em qualquer número do painel para entender o que ele significa</div>';
+}
+
+// ================================================== modo simples e completo
+function aplicarModo() {
+  document.body.classList.toggle('modo-simples', E.modo === 'simples');
+  montarFaixa();
+  // Títulos de painel também trocam de linguagem.
+  $$('h3[data-simples]').forEach((titulo) => {
+    if (!titulo.dataset.tecnico) titulo.dataset.tecnico = titulo.textContent.trim();
+    titulo.textContent = E.modo === 'simples' ? titulo.dataset.simples : titulo.dataset.tecnico;
+  });
+  $$('#seletorModo button').forEach((b) => b.classList.toggle('ativo', b.dataset.modo === E.modo));
+  redesenhar();
+}
+$$('#seletorModo button').forEach((botao) => {
+  botao.onclick = () => {
+    E.modo = botao.dataset.modo;
+    guardar('modo', E.modo);
+    aplicarModo();
+    toast(E.modo === 'simples'
+      ? 'Modo simples: só o essencial, em português comum.'
+      : 'Modo completo: todos os indicadores e os nomes técnicos.');
+  };
+});
+
+
+// Sem estas duas chamadas o gráfico vira uma figura morta: nada de leitura
+// no mouse, nada de zoom, nada de fixar a linha.
+ligarCorte($('#graficoGeral'), $('#tooltipGeral'));
+ligarCorte($('#graficoCheio'), $('#tooltipCheio'));
+
+aplicarModo();
+montarChipsDeFaixa();
 iniciar();
 </script>
 </body>

@@ -93,7 +93,7 @@ function status() {
     intervaloHoras: INTERVALO_MS / 3600000,
     total: lista.length,
     copias: detalhes,
-    aviso: 'As copias incluem data/config.json, que guarda a chave da IA. Trate a pasta backups/ como material sigiloso.'
+    aviso: 'As cópias incluem data/config.json, que guarda a chave da IA. Trate a pasta backups/ como material sigiloso.'
   };
 }
 

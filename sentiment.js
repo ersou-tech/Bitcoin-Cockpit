@@ -308,7 +308,7 @@ async function documentosFed() {
 const ESPERAS = [2000, 6000, 14000];
 
 async function chamarGemini(prompt, cfg) {
-  if (!cfg.geminiKey) throw new Error('sem chave da IA: cadastre em AJUSTES ou use a variavel GEMINI_KEY');
+  if (!cfg.geminiKey) throw new Error('sem chave da IA: cadastre no botão Ajustes ou use a variável GEMINI_KEY');
   const modelo = cfg.geminiModel || 'gemini-3.6-flash';
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + modelo + ':generateContent';
   const corpo = {
@@ -340,7 +340,7 @@ async function chamarGemini(prompt, cfg) {
         dados.candidates[0].content && dados.candidates[0].content.parts
         ? dados.candidates[0].content.parts.map((p) => p.text || '').join('')
         : '';
-      if (!texto) throw new Error('resposta da IA veio vazia');
+      if (!texto) throw new Error('a resposta da IA veio vazia');
       return JSON.parse(texto);
     } catch (e) {
       ultimoErro = e;
@@ -406,7 +406,7 @@ async function analisar(tipo, cfg) {
     if (tipo === 'fed') {
       const pacote = await documentosFed();
       if (!pacote.documentos.length) {
-        return { erro: 'nenhum documento do Fed pode ser lido agora', falhas: pacote.falhas };
+        return { erro: 'nenhum documento do Fed pôde ser lido agora', falhas: pacote.falhas };
       }
       const leitura = await chamarGemini(promptFed(pacote), cfg);
       const registro = Object.assign({ tipo: 'fed', t: Date.now(), fontes: pacote.documentos.map((d) => ({ titulo: d.titulo, link: d.link })) }, leitura);
@@ -414,7 +414,7 @@ async function analisar(tipo, cfg) {
       return registro;
     }
     const pacote = await noticias();
-    if (!pacote.itens.length) return { erro: 'nenhuma manchete relevante nas ultimas 36h', falhas: pacote.falhas };
+    if (!pacote.itens.length) return { erro: 'nenhuma manchete relevante nas últimas 36h', falhas: pacote.falhas };
     const leitura = await chamarGemini(promptNoticias(pacote), cfg);
     const registro = Object.assign({ tipo: 'noticias', t: Date.now(), quantidade: pacote.itens.length, falhas: pacote.falhas }, leitura);
     anexar(registro);
