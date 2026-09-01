@@ -8,358 +8,539 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+/* ===========================================================================
+   BTC RADAR - sistema visual
+   Terminal escuro, zero borda arredondada. Organização vem de três coisas:
+   um painel único reaproveitado em tudo, uma grade de colunas com quebra
+   responsiva, e hierarquia de tamanho (herói > painel > linha).
+   =========================================================================== */
 :root{
   --fundo:#05070B;
+  --painel:rgba(255,255,255,.016);
+  --painel-topo:rgba(255,255,255,.028);
+  --fio:#161c26;
+  --fio2:#232b38;
   --verde:#19e08a;
   --vermelho:#ff4256;
   --ambar:#ffb020;
   --ciano:#39d4ff;
   --branco:#f2f5f9;
-  --fraco:#7d8798;
-  --fio:#171d27;
-  --fio2:#242c39;
+  --texto:#c4ccd9;
+  --fraco:#7a8496;
+  --e1:4px; --e2:8px; --e3:12px; --e4:16px; --e5:24px;
+  --topo:98px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{
   background:
-    radial-gradient(1100px 620px at 12% -10%, rgba(57,212,255,.10), transparent 60%),
-    radial-gradient(900px 520px at 92% 0%, rgba(25,224,138,.07), transparent 62%),
-    radial-gradient(800px 700px at 50% 120%, rgba(255,66,86,.06), transparent 60%),
+    radial-gradient(1200px 640px at 10% -12%, rgba(57,212,255,.09), transparent 60%),
+    radial-gradient(1000px 540px at 94% -4%, rgba(25,224,138,.06), transparent 62%),
     var(--fundo);
+  background-attachment:fixed;
   color:var(--branco);
   font-family:Inter,'Segoe UI',system-ui,sans-serif;
   font-size:13px;
-  overflow:hidden;
+  line-height:1.45;
 }
 .mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums}
-.rot{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--fraco);font-weight:600}
-.verde{color:var(--verde)} .vermelho{color:var(--vermelho)} .ambar{color:var(--ambar)} .ciano{color:var(--ciano)}
-.fraco{color:var(--fraco)}
-hr.fio{border:0;border-top:1px solid var(--fio);margin:10px 0}
-button{font-family:inherit;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
-  background:transparent;color:var(--fraco);border:1px solid var(--fio2);padding:5px 10px;cursor:pointer}
-button:hover{color:var(--branco);border-color:var(--ciano)}
-button.ativo{color:var(--fundo);background:var(--ciano);border-color:var(--ciano);font-weight:700}
-input,textarea,select{font-family:inherit;background:#0a0e15;border:1px solid var(--fio2);color:var(--branco);
-  padding:6px 8px;font-size:12px;width:100%}
-input:focus,textarea:focus,select:focus{outline:none;border-color:var(--ciano)}
+.verde{color:var(--verde)} .vermelho{color:var(--vermelho)}
+.ambar{color:var(--ambar)} .ciano{color:var(--ciano)} .fraco{color:var(--fraco)}
+.rot{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--fraco);font-weight:600}
 a{color:var(--ciano);text-decoration:none}
 a:hover{text-decoration:underline}
-table{width:100%;border-collapse:collapse;font-size:11.5px}
-th{text-align:left;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--fraco);
-  font-weight:600;padding:6px 8px;border-bottom:1px solid var(--fio2)}
-td{padding:6px 8px;border-bottom:1px solid var(--fio)}
-tr:hover td{background:rgba(57,212,255,.05)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--fio2)}
+::-webkit-scrollbar-thumb:hover{background:#33405280}
 
-/* ---------------------------------------------------------- barra de comando */
-#barra{display:flex;align-items:center;gap:22px;padding:10px 18px;border-bottom:1px solid var(--fio2);
-  height:64px;background:rgba(5,7,11,.86);backdrop-filter:blur(6px)}
-#barra .marca{font-weight:700;letter-spacing:.22em;font-size:12px;color:var(--ciano)}
-#barra .bloco{display:flex;flex-direction:column;gap:2px;min-width:82px}
-#barra .valor{font-size:13px;font-weight:600}
-#preco{font-size:26px;font-weight:700;letter-spacing:-.5px;line-height:1}
-#vivo{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.14em;color:var(--fraco)}
-#pisca{width:7px;height:7px;background:var(--verde);border-radius:50%;animation:pisca 1.6s infinite}
-@keyframes pisca{0%,100%{opacity:1}50%{opacity:.15}}
-#abas{display:flex;gap:0;margin-left:auto}
-#abas button{border-right:0}
-#abas button:last-child{border-right:1px solid var(--fio2)}
+/* ------------------------------------------------------------- controles */
+button{
+  font-family:inherit;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  background:transparent;color:var(--fraco);border:1px solid var(--fio2);
+  padding:5px 11px;cursor:pointer;transition:color .12s,border-color .12s,background .12s;
+}
+button:hover{color:var(--branco);border-color:var(--fraco)}
+button.ativo{color:var(--fundo);background:var(--ciano);border-color:var(--ciano)}
+button:disabled{opacity:.45;cursor:progress}
+.grupo{display:inline-flex}
+.grupo button{border-right-width:0}
+.grupo button:last-child{border-right-width:1px}
+input,textarea,select{
+  font-family:inherit;font-size:12px;background:#080c13;border:1px solid var(--fio2);
+  color:var(--branco);padding:7px 9px;width:100%;
+}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--ciano)}
+input[type=checkbox]{width:auto}
+textarea{resize:vertical}
 
-/* ------------------------------------------------------------------- layout */
-#tela{height:calc(100vh - 64px);overflow:hidden}
-.vista{display:none;height:100%;overflow:auto;padding:14px 18px 30px}
+/* --------------------------------------------------------------- cabeçalho */
+#topo{position:sticky;top:0;z-index:40;background:rgba(5,7,11,.93);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--fio2)}
+#linha1{display:flex;align-items:center;gap:var(--e4);padding:0 var(--e4);height:54px}
+.marca{font-weight:700;letter-spacing:.24em;font-size:12px;color:var(--ciano);white-space:nowrap}
+#precoCaixa{display:flex;align-items:baseline;gap:10px}
+#preco{font-size:27px;font-weight:700;letter-spacing:-.6px;line-height:1;transition:color .25s}
+#var24h{font-size:13px;font-weight:600}
+#vivo{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.14em;color:var(--fraco);white-space:nowrap}
+#pisca{width:7px;height:7px;background:var(--verde);border-radius:50%;animation:pisca 1.8s infinite}
+@keyframes pisca{0%,100%{opacity:1}50%{opacity:.12}}
+#abas{display:flex;margin-left:auto}
+#abas button{border-right-width:0;padding:7px 13px;position:relative}
+#abas button:last-child{border-right-width:1px}
+#abas button .num{opacity:.5;margin-right:5px;font-family:'JetBrains Mono',monospace}
+#abas button.ativo .num{opacity:.7}
+#acoesTopo{display:flex;gap:6px}
+
+/* faixa de métricas: cada uma é um atalho para a view que a explica */
+#faixa{display:flex;overflow-x:auto;border-top:1px solid var(--fio);scrollbar-width:none}
+#faixa::-webkit-scrollbar{display:none}
+.metrica{display:flex;flex-direction:column;gap:1px;padding:6px 16px;min-width:118px;
+  border-right:1px solid var(--fio);cursor:pointer;background:none;text-transform:none;
+  letter-spacing:0;align-items:flex-start;text-align:left}
+.metrica:hover{background:rgba(57,212,255,.07);border-color:var(--fio)}
+.metrica .k{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--fraco);font-weight:600}
+.metrica .v{font-size:14px;font-weight:600;color:var(--branco)}
+
+/* ------------------------------------------------------------------ grades */
+main{padding:var(--e4);max-width:2100px;margin:0 auto}
+.vista{display:none}
 .vista.ativa{display:block}
-.grade1{display:grid;grid-template-columns:250px minmax(0,1fr) 330px;gap:18px;align-items:start}
-.secao{margin-bottom:16px}
-.secao > .rot{display:flex;justify-content:space-between;align-items:center;
-  padding-bottom:5px;border-bottom:1px solid var(--fio2);margin-bottom:9px}
-.linha{display:flex;justify-content:space-between;align-items:baseline;padding:3px 0;font-size:12px}
-.linha .k{color:var(--fraco)}
-.grelha{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px 18px}
+.grade{display:grid;gap:var(--e4);align-items:start}
+.g-geral{grid-template-columns:272px minmax(0,1fr) 344px}
+.g-dois{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g-tres{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g-snap{grid-template-columns:330px minmax(0,1fr)}
+.g-alerta{grid-template-columns:minmax(0,780px) minmax(0,440px);justify-content:start}
+.g-doisum{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+.coluna{display:grid;gap:var(--e4);align-content:start}
+@media (max-width:1400px){.g-tres,.g-doisum{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1560px){
+  .g-geral{grid-template-columns:260px minmax(0,1fr)}
+  .g-geral .lado-direito{grid-column:1 / -1;grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:1180px){
+  .g-geral,.g-dois,.g-tres,.g-snap,.g-alerta,.g-doisum{grid-template-columns:minmax(0,1fr)}
+  .g-geral .lado-direito{grid-template-columns:minmax(0,1fr)}
+}
 
-/* -------------------------------------------------------------- estado grande */
-#estado{font-size:30px;font-weight:700;line-height:1.1;letter-spacing:-.6px;margin:6px 0 8px}
-#estadoTexto{font-size:13px;color:#c3cbd8;max-width:70ch;line-height:1.55}
-.pressao{display:flex;flex-direction:column;gap:7px;margin-top:10px}
-.fator{display:grid;grid-template-columns:118px 1fr 62px;align-items:center;gap:10px;font-size:11.5px}
-.trilho{position:relative;height:9px;background:#0c1119;border:1px solid var(--fio)}
-.trilho .meio{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--fio2)}
-.trilho .barra{position:absolute;top:0;bottom:0}
+/* ------------------------------------------------------------------ painel */
+.painel{background:var(--painel);border:1px solid var(--fio);min-width:0}
+.painel > header{display:flex;align-items:center;gap:var(--e2);padding:7px var(--e3);
+  background:var(--painel-topo);border-bottom:1px solid var(--fio);min-height:34px}
+.painel > header h3{font-size:10px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--texto);font-weight:600;flex:1;cursor:pointer;user-select:none;display:flex;align-items:center;gap:7px}
+.painel > header h3::before{content:'▾';font-size:9px;color:var(--fraco);transition:transform .15s}
+.painel.fechado > header h3::before{transform:rotate(-90deg)}
+.painel > header .acoes{display:flex;align-items:center;gap:6px}
+.painel > header .selo{font-size:10px;color:var(--fraco)}
+.painel .corpo{padding:var(--e3)}
+.painel.fechado .corpo{display:none}
+.painel.sem-recheio .corpo{padding:0}
+
+/* --------------------------------------------------------------- conteúdos */
+.linha{display:flex;justify-content:space-between;align-items:baseline;gap:var(--e3);
+  padding:4px 0;border-bottom:1px solid rgba(255,255,255,.035)}
+.linha:last-child{border-bottom:0}
+.linha .k{color:var(--fraco);font-size:11.5px}
+.linha .v{font-size:12.5px;font-weight:500}
+.heroi{padding:var(--e4) var(--e4) var(--e4) 0;border-left:3px solid var(--fio2);padding-left:var(--e4)}
+#estado{font-size:clamp(20px,2.4vw,32px);font-weight:700;line-height:1.08;letter-spacing:-.7px;margin-bottom:var(--e2)}
+#estadoTexto{font-size:13px;color:var(--texto);max-width:74ch}
+.sparkbox{display:grid;grid-template-columns:52px 1fr 58px;align-items:center;gap:var(--e2);
+  padding:6px 0;border-bottom:1px solid rgba(255,255,255,.035);cursor:default}
+.sparkbox:last-child{border-bottom:0}
+.sparkbox canvas{width:100%;height:26px}
 canvas{display:block;width:100%}
-.sparkbox{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--fio)}
-.sparkbox canvas{width:96px;height:26px}
-.chip{display:inline-block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
-  border:1px solid var(--fio2);padding:2px 7px;margin:2px 4px 2px 0;color:var(--fraco)}
+
+.fator{display:grid;grid-template-columns:130px minmax(60px,1fr) 72px;align-items:center;
+  gap:var(--e3);padding:5px 0;font-size:11.5px;border-bottom:1px solid rgba(255,255,255,.03)}
+.fator:last-of-type{border-bottom:0}
+.fator .nome{display:flex;align-items:center;gap:5px;cursor:help}
+.fator.vazio{opacity:.45}
+.trilho{position:relative;height:10px;background:#0a0f17;border:1px solid var(--fio)}
+.trilho .meio{position:absolute;left:50%;top:-1px;bottom:-1px;width:1px;background:var(--fio2)}
+.trilho .barra{position:absolute;top:0;bottom:0;transition:left .3s,width .3s}
+.ajudaFator{grid-column:1 / -1;font-size:10.5px;color:var(--fraco);padding:0 0 4px 0;display:none}
+.fator.aberto .ajudaFator{display:block}
+
+.chip{display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  border:1px solid var(--fio2);padding:2px 7px;margin:0 4px 4px 0;color:var(--fraco)}
 .chip.fresco{border-color:var(--verde);color:var(--verde)}
 .chip.velho{border-color:var(--ambar);color:var(--ambar)}
 .chip.ausente{border-color:var(--vermelho);color:var(--vermelho)}
-.aviso{border-left:2px solid var(--ambar);padding:7px 10px;background:rgba(255,176,32,.06);
-  font-size:11.5px;color:#d9d2c2;margin:8px 0}
-.erro{border-left:2px solid var(--vermelho);padding:7px 10px;background:rgba(255,66,86,.07);
-  font-size:11.5px;color:#f0c9ce;margin:8px 0}
-.termometro{height:14px;background:linear-gradient(90deg,var(--vermelho),var(--ambar),var(--verde));position:relative;margin:10px 0 6px}
-.termometro .agulha{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--branco)}
-.noticia{padding:6px 0;border-bottom:1px solid var(--fio);font-size:11.5px;line-height:1.45}
-.noticia .fonte{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--fraco)}
-.ponto{padding:7px 0;border-bottom:1px solid var(--fio)}
+.aviso,.erro{font-size:11.5px;line-height:1.5;padding:8px 11px;margin-top:var(--e2)}
+.aviso{border-left:2px solid var(--ambar);background:rgba(255,176,32,.05);color:#d8d0bd}
+.erro{border-left:2px solid var(--vermelho);background:rgba(255,66,86,.06);color:#f0c9ce}
+
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th{text-align:left;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--fraco);
+  font-weight:600;padding:7px 9px;border-bottom:1px solid var(--fio2);white-space:nowrap;
+  position:sticky;top:0;background:#080b11}
+th.ordenavel{cursor:pointer;user-select:none}
+th.ordenavel:hover{color:var(--branco)}
+td{padding:6px 9px;border-bottom:1px solid var(--fio)}
+tbody tr:hover td{background:rgba(57,212,255,.05)}
+tbody tr.marcada td{background:rgba(57,212,255,.09)}
+.rolagem{max-height:420px;overflow:auto}
+
+.termometro{height:16px;position:relative;margin:var(--e3) 0 var(--e2);
+  background:linear-gradient(90deg,var(--vermelho) 0%,var(--ambar) 50%,var(--verde) 100%)}
+.termometro .agulha{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--branco);
+  box-shadow:0 0 0 1px rgba(0,0,0,.6);transition:left .4s}
+.escala{display:flex;justify-content:space-between;font-size:9.5px;color:var(--fraco)}
+.noticia{padding:7px 0;border-bottom:1px solid rgba(255,255,255,.035);font-size:11.5px;line-height:1.45}
+.noticia .fonte{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fraco)}
+.ponto{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.035)}
+.ponto:last-child{border-bottom:0}
 .ponto .titulo{font-weight:600;font-size:12px;margin-bottom:2px}
-.ponto .texto{font-size:11.5px;color:#c3cbd8;line-height:1.5}
-#toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:60}
-.toast{border-left:2px solid var(--ciano);background:#0a0e15;padding:9px 13px;font-size:12px;
-  box-shadow:0 8px 30px rgba(0,0,0,.6);max-width:330px}
+.ponto .texto{font-size:11.5px;color:var(--texto)}
+.regra{display:grid;grid-template-columns:minmax(0,1fr) 120px 96px;gap:var(--e3);align-items:center;
+  padding:10px 0;border-bottom:1px solid rgba(255,255,255,.035)}
+.regra:last-child{border-bottom:0}
+.regra .nome{font-size:12px;font-weight:500}
+.regra .desc{font-size:10.5px;color:var(--fraco)}
+.detalhe{font-size:11.5px;white-space:pre-wrap;word-break:break-word;background:#070a10;
+  border:1px solid var(--fio);padding:var(--e3);max-height:380px;overflow:auto}
+#log div{padding:5px 0;border-bottom:1px solid rgba(255,255,255,.035);font-size:11.5px}
+#log{max-height:300px;overflow:auto}
+.campo{margin-bottom:var(--e3)}
+.campo .rot{display:block;margin-bottom:var(--e1)}
+.botoeira{display:flex;gap:var(--e2);flex-wrap:wrap}
+.vazio{color:var(--fraco);font-size:11.5px;padding:var(--e2) 0}
+
+/* --------------------------------------------------------- sobreposições */
+#toasts{position:fixed;right:var(--e4);bottom:var(--e4);display:flex;flex-direction:column;
+  gap:var(--e2);z-index:70;max-width:min(360px,80vw)}
+.toast{border-left:2px solid var(--ciano);background:#0a0e15;padding:10px 14px;font-size:12px;
+  box-shadow:0 10px 34px rgba(0,0,0,.65);animation:entra .18s ease-out}
 .toast.alerta{border-color:var(--ambar)}
-#modal{position:fixed;inset:0;background:rgba(3,5,9,.93);display:none;align-items:center;justify-content:center;z-index:90}
-#modal.aberto{display:flex}
-.caixa{width:min(560px,92vw);border:1px solid var(--fio2);background:#070a10;padding:22px 24px}
-.caixa h2{font-size:15px;letter-spacing:.16em;text-transform:uppercase;color:var(--ciano);margin-bottom:4px}
-.caixa p{font-size:12px;color:#aab3c2;line-height:1.6;margin:8px 0}
-.caixa .campo{margin:14px 0 6px}
-.caixa .botoes{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
-.regra{display:grid;grid-template-columns:1fr 110px 84px;gap:10px;align-items:center;
-  padding:9px 0;border-bottom:1px solid var(--fio)}
-.regra .nome{font-size:12px}
-.regra .desc{font-size:10.5px;color:var(--fraco);margin-top:2px}
-#log{max-height:270px;overflow:auto;font-size:11.5px}
-#log div{padding:4px 0;border-bottom:1px solid var(--fio)}
-.detalhe{font-size:11.5px;white-space:pre-wrap;background:#080b11;border:1px solid var(--fio);padding:10px;
-  max-height:340px;overflow:auto}
-.atalhos{font-size:10px;color:var(--fraco);letter-spacing:.08em}
+@keyframes entra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.sobreposicao{position:fixed;inset:0;background:rgba(3,5,9,.92);display:none;
+  align-items:center;justify-content:center;z-index:90;padding:var(--e4)}
+.sobreposicao.aberto{display:flex}
+.caixa{width:min(600px,94vw);max-height:88vh;overflow:auto;border:1px solid var(--fio2);background:#070a10;padding:var(--e5)}
+.caixa h2{font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:var(--ciano);margin-bottom:var(--e2)}
+.caixa p{font-size:12px;color:var(--texto);margin:var(--e2) 0}
+.caixa .botoeira{justify-content:flex-end;margin-top:var(--e4)}
+.teclas{display:grid;grid-template-columns:84px 1fr;gap:7px var(--e3);font-size:12px;margin-top:var(--e3)}
+.teclas kbd{font-family:'JetBrains Mono',monospace;font-size:11px;border:1px solid var(--fio2);
+  padding:2px 7px;color:var(--branco);text-align:center;background:#0b0f17}
 </style>
 </head>
 <body>
 
-<div id="modal">
+<header id="topo">
+  <div id="linha1">
+    <div class="marca">BTC RADAR</div>
+    <div id="precoCaixa">
+      <div id="preco" class="mono">—</div>
+      <div id="var24h" class="mono">—</div>
+    </div>
+    <div id="vivo"><span id="pisca"></span><span id="rotuloVivo">AO VIVO</span></div>
+    <nav id="abas" class="grupo">
+      <button data-vista="1" class="ativo"><span class="num">1</span>Visão geral</button>
+      <button data-vista="2"><span class="num">2</span>Gráfico</button>
+      <button data-vista="3"><span class="num">3</span>Liquidez</button>
+      <button data-vista="4"><span class="num">4</span>Sentimento</button>
+      <button data-vista="5"><span class="num">5</span>Snapshots</button>
+      <button data-vista="6"><span class="num">6</span>Alertas</button>
+    </nav>
+    <div id="acoesTopo">
+      <button id="btnAjuda" title="Atalhos do teclado">?</button>
+      <button id="btnAjustes" title="Chave da IA">Ajustes</button>
+    </div>
+  </div>
+  <div id="faixa"></div>
+</header>
+
+<main>
+
+  <!-- ============================================================ 1 GERAL -->
+  <section class="vista ativa" data-vista="1">
+    <div class="grade g-geral">
+
+      <div class="coluna">
+        <section class="painel" data-painel="mercado">
+          <header><h3>Mercado</h3><span id="relogio" class="selo mono"></span></header>
+          <div class="corpo"><div id="sparks"></div></div>
+        </section>
+        <section class="painel" data-painel="sentimento">
+          <header><h3>Sentimento</h3>
+            <div class="acoes"><button data-ir="4">ver</button></div>
+          </header>
+          <div class="corpo"><div id="notasSentimento"></div></div>
+        </section>
+        <section class="painel" data-painel="macro">
+          <header><h3>Macro</h3>
+            <div class="acoes"><button data-ir="4">ver</button></div>
+          </header>
+          <div class="corpo"><div id="blocoMacro"></div></div>
+        </section>
+      </div>
+
+      <div class="coluna">
+        <section class="painel" data-painel="estado">
+          <header><h3>Estado do mercado</h3>
+            <div class="acoes grupo">
+              <button id="btnSimples" class="ativo">Simples</button><button id="btnTecnico">Técnico</button>
+            </div>
+          </header>
+          <div class="corpo">
+            <div class="heroi" id="heroiEstado">
+              <div id="estado">—</div>
+              <div id="estadoTexto"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="painel" data-painel="pressao">
+          <header><h3>De onde vem a pressão</h3>
+            <span id="pressaoLiquido" class="selo mono"></span>
+          </header>
+          <div class="corpo">
+            <div id="pressao"></div>
+            <div class="fraco" style="font-size:10.5px;margin-top:8px">Clique num fator para ver o que ele mede. Verde empurra para cima, vermelho para baixo.</div>
+          </div>
+        </section>
+
+        <section class="painel" data-painel="grafico">
+          <header><h3>Preço · open interest · long/short · liquidações</h3>
+            <div class="acoes">
+              <span id="tfBotoes" class="grupo">
+                <button data-tf="15m">15m</button><button data-tf="1h" class="ativo">1h</button>
+                <button data-tf="4h">4h</button><button data-tf="1d">1d</button>
+              </span>
+              <span class="selo mono" data-fonte-serie></span><button data-ir="2">Tela cheia</button>
+            </div>
+          </header>
+          <div class="corpo">
+            <canvas id="graficoGeral" height="340"></canvas>
+            <div id="tooltipGeral" class="fraco mono" style="font-size:11px;min-height:17px;margin-top:6px"></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="coluna lado-direito">
+        <section class="painel" data-painel="livro">
+          <header><h3>Mapa de liquidez</h3><span class="selo">±2%</span></header>
+          <div class="corpo"><canvas id="mapaLivro" height="250"></canvas></div>
+        </section>
+        <section class="painel" data-painel="mapaliq">
+          <header><h3>Liquidações por preço</h3><span class="selo">24h</span></header>
+          <div class="corpo"><canvas id="mapaLiq" height="230"></canvas></div>
+        </section>
+        <section class="painel" data-painel="muros">
+          <header><h3>Maiores muros</h3><div class="acoes"><button data-ir="3">ver</button></div></header>
+          <div class="corpo"><div id="muros"></div></div>
+        </section>
+      </div>
+    </div>
+
+    <div class="grade g-tres" style="margin-top:var(--e4)">
+      <section class="painel" data-painel="posic">
+        <header><h3>Posicionamento</h3></header>
+        <div class="corpo"><div id="posicionamento"></div></div>
+      </section>
+      <section class="painel" data-painel="fundbasis">
+        <header><h3>Funding, basis e open interest</h3></header>
+        <div class="corpo"><div id="fundingBasis"></div></div>
+      </section>
+      <section class="painel" data-painel="liqrodape">
+        <header><h3>Liquidações</h3></header>
+        <div class="corpo"><div id="liquidacoesRodape"></div></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ========================================================== 2 GRÁFICO -->
+  <section class="vista" data-vista="2">
+    <section class="painel" data-painel="graficocheio">
+      <header><h3>Painéis empilhados · eixo de tempo compartilhado</h3><span class="selo mono" data-fonte-serie></span>
+        <div class="acoes">
+          <span id="tfBotoes2" class="grupo">
+            <button data-tf="15m">15m</button><button data-tf="1h" class="ativo">1h</button>
+            <button data-tf="4h">4h</button><button data-tf="1d">1d</button>
+          </span>
+        </div>
+      </header>
+      <div class="corpo">
+        <canvas id="graficoCheio" height="640"></canvas>
+        <div id="tooltipCheio" class="fraco mono" style="font-size:12px;min-height:18px;margin-top:8px"></div>
+        <div class="fraco" style="font-size:10.5px;margin-top:4px">Passe o mouse para a linha de corte. Clique para fixar, clique de novo para soltar.</div>
+      </div>
+    </section>
+  </section>
+
+  <!-- ========================================================= 3 LIQUIDEZ -->
+  <section class="vista" data-vista="3">
+    <div class="grade g-dois">
+      <section class="painel" data-painel="livrogrande">
+        <header><h3>Livro somado · Binance + Bybit + OKX</h3><span class="selo">±2%</span></header>
+        <div class="corpo"><canvas id="mapaLivroGrande" height="500"></canvas></div>
+      </section>
+      <section class="painel" data-painel="liqgrande">
+        <header><h3>Liquidações por faixa de preço</h3><span class="selo">24h</span></header>
+        <div class="corpo"><canvas id="mapaLiqGrande" height="500"></canvas></div>
+      </section>
+    </div>
+    <section class="painel" data-painel="murosgrande" style="margin-top:var(--e4)">
+      <header><h3>Maiores muros do livro somado</h3></header>
+      <div class="corpo"><div id="murosGrande"></div></div>
+    </section>
+  </section>
+
+  <!-- ======================================================= 4 SENTIMENTO -->
+  <section class="vista" data-vista="4">
+    <div class="grade g-tres">
+      <div class="coluna">
+        <section class="painel" data-painel="termo">
+          <header><h3>Termômetro</h3><span id="termoNota" class="selo mono"></span></header>
+          <div class="corpo">
+            <div class="termometro"><div id="agulha" class="agulha" style="left:50%"></div></div>
+            <div class="escala"><span>medo -100</span><span>0</span><span>+100 ganância</span></div>
+            <div id="termoDetalhe" style="font-size:11.5px;margin-top:10px"></div>
+          </div>
+        </section>
+        <section class="painel" data-painel="fng">
+          <header><h3>Medo e ganância · 60 dias</h3><span id="fngAtual" class="selo mono"></span></header>
+          <div class="corpo"><canvas id="graficoFng" height="170"></canvas></div>
+        </section>
+      </div>
+      <section class="painel" data-painel="ianoticias">
+        <header><h3>Leitura das notícias</h3>
+          <div class="acoes"><button id="rodarNoticias">Rodar análise</button></div>
+        </header>
+        <div class="corpo"><div id="analiseNoticias"></div></div>
+      </section>
+      <section class="painel" data-painel="iafed">
+        <header><h3>Leitura do Fed</h3>
+          <div class="acoes"><button id="rodarFed">Rodar análise</button></div>
+        </header>
+        <div class="corpo"><div id="analiseFed"></div></div>
+      </section>
+    </div>
+
+    <div class="grade g-doisum" style="margin-top:var(--e4)">
+      <section class="painel" data-painel="preditivo">
+        <header><h3>Preditivo · fórmula, sem IA</h3><span id="preditivoNota" class="selo mono"></span></header>
+        <div class="corpo"><div id="tabelaPreditivo"></div></div>
+      </section>
+      <section class="painel" data-painel="manchetes">
+        <header><h3>Manchetes · 36h</h3>
+          <div class="acoes"><input id="filtroNoticias" placeholder="filtrar…" style="width:150px;padding:4px 8px"></div>
+        </header>
+        <div class="corpo"><div id="listaNoticias" class="rolagem" style="max-height:640px"></div></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ======================================================== 5 SNAPSHOTS -->
+  <section class="vista" data-vista="5">
+    <div class="grade g-snap">
+      <div class="coluna">
+        <section class="painel" data-painel="salvar">
+          <header><h3>Salvar momento</h3><span class="selo">manual</span></header>
+          <div class="corpo">
+            <div class="campo"><span class="rot">Nota</span>
+              <textarea id="notaSnap" rows="4" placeholder="o que você está vendo agora"></textarea></div>
+            <div class="campo"><span class="rot">Etiquetas (separadas por vírgula)</span>
+              <input id="etiquetasSnap" placeholder="topo local, funding alto"></div>
+            <div class="botoeira">
+              <button id="salvarSnap" class="ativo">Salvar (S)</button>
+              <button id="baixarCsv">CSV</button>
+              <button id="baixarJson">JSON</button>
+            </div>
+            <div id="frescor" style="margin-top:var(--e3)"></div>
+          </div>
+        </section>
+        <section class="painel" data-painel="backup">
+          <header><h3>Backup</h3><div class="acoes"><button id="forcarBackup">Rodar agora</button></div></header>
+          <div class="corpo"><div id="painelBackup"></div></div>
+        </section>
+      </div>
+      <div class="coluna">
+        <section class="painel sem-recheio" data-painel="listasnap">
+          <header><h3>Snapshots</h3>
+            <div class="acoes">
+              <button id="compararSnap">Comparar 2</button>
+              <button id="apagarSnap">Apagar marcados</button>
+            </div>
+          </header>
+          <div class="corpo"><div id="tabelaSnaps" class="rolagem"></div></div>
+        </section>
+        <section class="painel" data-painel="detalhesnap">
+          <header><h3>Detalhe</h3></header>
+          <div class="corpo"><div id="detalheSnap" class="detalhe fraco">Clique numa linha para ver o registro inteiro. Marque duas e use “comparar”.</div></div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== 6 ALERTAS -->
+  <section class="vista" data-vista="6">
+    <div class="grade g-alerta">
+      <section class="painel" data-painel="regras">
+        <header><h3>Regras</h3><span class="selo">a cada 15s · silêncio de 10 min por regra</span></header>
+        <div class="corpo">
+          <div id="regras"></div>
+          <div class="botoeira" style="margin-top:var(--e3)">
+            <button id="pedirPermissao">Autorizar notificações do sistema</button>
+          </div>
+          <div class="aviso">Sem autorização do navegador, o alerta ainda aparece na tela e no log — só não vira notificação do sistema.</div>
+        </div>
+      </section>
+      <section class="painel" data-painel="log">
+        <header><h3>Log</h3><div class="acoes"><button id="limparLog">Limpar</button></div></header>
+        <div class="corpo"><div id="log" class="mono"></div></div>
+      </section>
+    </div>
+  </section>
+
+</main>
+
+<div id="modal" class="sobreposicao">
   <div class="caixa">
     <h2>Chave da IA</h2>
-    <p>O BTC RADAR usa o Gemini para ler notícias e documentos do Fed. Sem chave, o painel funciona
+    <p>O BTC RADAR usa o Gemini para ler notícias e documentos do Fed. Sem chave o painel funciona
        inteiro — só os dois blocos de análise por IA ficam desligados.</p>
     <p>Pegue uma chave gratuita em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">aistudio.google.com/apikey</a>.
-       Ela é gravada em <span class="mono">data/config.json</span>, fica só no seu computador e nunca é enviada ao navegador de volta.</p>
-    <div class="campo">
-      <div class="rot">Chave (deixe em branco para configurar depois)</div>
-      <input id="campoChave" type="password" autocomplete="off" placeholder="AIza...">
-    </div>
-    <div class="campo">
-      <div class="rot">Modelo</div>
-      <input id="campoModelo" value="gemini-3.6-flash">
-    </div>
-    <div class="botoes">
+       Ela é gravada em <span class="mono">data/config.json</span>, fica só neste computador e nunca é
+       devolvida ao navegador.</p>
+    <div class="campo"><span class="rot">Chave (deixe em branco para configurar depois)</span>
+      <input id="campoChave" type="password" autocomplete="off" placeholder="AIza..."></div>
+    <div class="campo"><span class="rot">Modelo</span>
+      <input id="campoModelo" value="gemini-3.6-flash"></div>
+    <div class="botoeira">
       <button id="pularChave">Agora não</button>
       <button id="salvarChave" class="ativo">Salvar</button>
     </div>
-    <p class="fraco" style="font-size:11px">Também dá para rodar sem gravar nada: <span class="mono">GEMINI_KEY=... npm start</span></p>
+    <p class="fraco" style="font-size:11px">Também dá para rodar sem gravar nada:
+      <span class="mono">GEMINI_KEY=... npm start</span></p>
   </div>
 </div>
 
-<header id="barra">
-  <div class="marca">BTC RADAR</div>
-  <div class="bloco">
-    <div class="rot">Preço</div>
-    <div id="preco" class="mono">—</div>
+<div id="ajuda" class="sobreposicao">
+  <div class="caixa">
+    <h2>Atalhos</h2>
+    <div class="teclas">
+      <kbd>1</kbd><span>Visão geral</span>
+      <kbd>2</kbd><span>Gráfico em tela cheia</span>
+      <kbd>3</kbd><span>Liquidez</span>
+      <kbd>4</kbd><span>Sentimento</span>
+      <kbd>5</kbd><span>Snapshots</span>
+      <kbd>6</kbd><span>Alertas</span>
+      <kbd>← →</kbd><span>Passar de view</span>
+      <kbd>S</kbd><span>Salvar snapshot agora</span>
+      <kbd>R</kbd><span>Recarregar todos os dados</span>
+      <kbd>F</kbd><span>Trocar o timeframe do gráfico</span>
+      <kbd>?</kbd><span>Abrir e fechar esta ajuda</span>
+      <kbd>Esc</kbd><span>Fechar janelas</span>
+    </div>
+    <p class="fraco" style="font-size:11.5px">Clique no título de qualquer painel para recolher.
+      O que você recolher fica recolhido na próxima abertura.</p>
+    <div class="botoeira"><button id="fecharAjuda" class="ativo">Entendi</button></div>
   </div>
-  <div class="bloco"><div class="rot">24h</div><div id="var24h" class="valor mono">—</div></div>
-  <div class="bloco"><div class="rot">Open interest</div><div id="oiTopo" class="valor mono">—</div></div>
-  <div class="bloco"><div class="rot">Funding</div><div id="fundingTopo" class="valor mono">—</div></div>
-  <div class="bloco"><div class="rot">Basis</div><div id="basisTopo" class="valor mono">—</div></div>
-  <div class="bloco"><div class="rot">Liquidações 1h</div><div id="liqTopo" class="valor mono">—</div></div>
-  <div id="vivo"><span id="pisca"></span><span id="rotuloVivo">AO VIVO</span></div>
-  <nav id="abas">
-    <button data-vista="1" class="ativo">1 Visão geral</button>
-    <button data-vista="2">2 Gráfico</button>
-    <button data-vista="3">3 Liquidez</button>
-    <button data-vista="4">4 Sentimento</button>
-    <button data-vista="5">5 Snapshots</button>
-    <button data-vista="6">6 Alertas</button>
-  </nav>
-  <div class="atalhos">1-6 · S salva · R recarrega</div>
-</header>
-
-<div id="tela">
-
-  <section class="vista ativa" data-vista="1">
-    <div class="grade1">
-      <div>
-        <div class="secao">
-          <div class="rot"><span>Mercado</span><span id="relogio" class="mono"></span></div>
-          <div id="sparks"></div>
-        </div>
-        <div class="secao">
-          <div class="rot"><span>Sentimento</span></div>
-          <div id="notasSentimento"></div>
-        </div>
-        <div class="secao">
-          <div class="rot"><span>Macro</span></div>
-          <div id="blocoMacro"></div>
-        </div>
-      </div>
-
-      <div>
-        <div class="secao">
-          <div class="rot"><span>Estado do mercado</span>
-            <span><button id="btnSimples" class="ativo">Simples</button><button id="btnTecnico">Técnico</button></span>
-          </div>
-          <div id="estado">—</div>
-          <div id="estadoTexto"></div>
-        </div>
-        <div class="secao">
-          <div class="rot"><span>De onde vem a pressão</span><span id="pressaoLiquido" class="mono"></span></div>
-          <div id="pressao" class="pressao"></div>
-        </div>
-        <div class="secao">
-          <div class="rot"><span>Gráfico empilhado</span>
-            <span id="tfBotoes">
-              <button data-tf="15m">15m</button><button data-tf="1h" class="ativo">1h</button>
-              <button data-tf="4h">4h</button><button data-tf="1d">1d</button>
-            </span>
-          </div>
-          <canvas id="graficoGeral" height="330"></canvas>
-          <div id="tooltipGeral" class="fraco mono" style="font-size:11px;min-height:16px;margin-top:4px"></div>
-        </div>
-      </div>
-
-      <div>
-        <div class="secao">
-          <div class="rot"><span>Mapa de liquidez</span><span class="fraco">±2%</span></div>
-          <canvas id="mapaLivro" height="190"></canvas>
-        </div>
-        <div class="secao">
-          <div class="rot"><span>Liquidações por preço</span><span class="fraco">24h</span></div>
-          <canvas id="mapaLiq" height="170"></canvas>
-        </div>
-        <div class="secao">
-          <div class="rot"><span>Maiores muros</span></div>
-          <div id="muros"></div>
-        </div>
-      </div>
-    </div>
-
-    <hr class="fio">
-    <div class="grade1">
-      <div class="secao">
-        <div class="rot"><span>Posicionamento</span></div>
-        <div id="posicionamento"></div>
-      </div>
-      <div class="secao">
-        <div class="rot"><span>Funding e basis</span></div>
-        <div id="fundingBasis"></div>
-      </div>
-      <div class="secao">
-        <div class="rot"><span>Liquidações</span></div>
-        <div id="liquidacoesRodape"></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="vista" data-vista="2">
-    <div class="secao">
-      <div class="rot"><span>Preço · open interest · long/short · liquidações</span>
-        <span id="tfBotoes2">
-          <button data-tf="15m">15m</button><button data-tf="1h" class="ativo">1h</button>
-          <button data-tf="4h">4h</button><button data-tf="1d">1d</button>
-        </span>
-      </div>
-      <canvas id="graficoCheio" height="620"></canvas>
-      <div id="tooltipCheio" class="fraco mono" style="font-size:12px;min-height:18px;margin-top:6px"></div>
-    </div>
-  </section>
-
-  <section class="vista" data-vista="3">
-    <div class="grade1" style="grid-template-columns:1fr 1fr">
-      <div class="secao">
-        <div class="rot"><span>Livro somado (Binance + Bybit + OKX)</span><span class="fraco">±2%</span></div>
-        <canvas id="mapaLivroGrande" height="480"></canvas>
-      </div>
-      <div class="secao">
-        <div class="rot"><span>Liquidações por faixa de preço</span><span class="fraco">24h</span></div>
-        <canvas id="mapaLiqGrande" height="480"></canvas>
-      </div>
-    </div>
-    <div class="secao">
-      <div class="rot"><span>Maiores muros do livro somado</span></div>
-      <div id="murosGrande"></div>
-    </div>
-  </section>
-
-  <section class="vista" data-vista="4">
-    <div class="grade1" style="grid-template-columns:1fr 1fr">
-      <div>
-        <div class="secao">
-          <div class="rot"><span>Termômetro</span><span id="termoNota" class="mono"></span></div>
-          <div class="termometro"><div id="agulha" class="agulha" style="left:50%"></div></div>
-          <div id="termoDetalhe" class="fraco" style="font-size:11.5px"></div>
-        </div>
-        <div class="secao">
-          <div class="rot"><span>Medo e ganância · 60 dias</span><span id="fngAtual" class="mono"></span></div>
-          <canvas id="graficoFng" height="150"></canvas>
-        </div>
-        <div class="secao">
-          <div class="rot"><span>Preditivo</span><span id="preditivoNota" class="mono"></span></div>
-          <div id="tabelaPreditivo"></div>
-        </div>
-      </div>
-      <div>
-        <div class="secao">
-          <div class="rot"><span>Notícias</span><button id="rodarNoticias">Rodar análise</button></div>
-          <div id="analiseNoticias" class="fraco">Sem análise ainda.</div>
-          <hr class="fio">
-          <div id="listaNoticias"></div>
-        </div>
-        <div class="secao">
-          <div class="rot"><span>Fed</span><button id="rodarFed">Rodar análise</button></div>
-          <div id="analiseFed" class="fraco">Sem análise ainda.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="vista" data-vista="5">
-    <div class="grade1" style="grid-template-columns:330px 1fr">
-      <div>
-        <div class="secao">
-          <div class="rot"><span>Salvar momento</span></div>
-          <div class="campo"><div class="rot">Nota</div><textarea id="notaSnap" rows="4" placeholder="o que você está vendo agora"></textarea></div>
-          <div class="campo" style="margin-top:8px"><div class="rot">Etiquetas (vírgula)</div><input id="etiquetasSnap" placeholder="topo local, funding alto"></div>
-          <div style="margin-top:10px;display:flex;gap:8px">
-            <button id="salvarSnap" class="ativo">Salvar snapshot (S)</button>
-            <button id="baixarCsv">CSV</button>
-            <button id="baixarJson">JSON</button>
-          </div>
-          <div id="frescor" style="margin-top:10px"></div>
-        </div>
-        <div class="secao">
-          <div class="rot"><span>Backup</span><button id="forcarBackup">Rodar agora</button></div>
-          <div id="painelBackup" class="fraco" style="font-size:11.5px"></div>
-        </div>
-      </div>
-      <div>
-        <div class="secao">
-          <div class="rot"><span>Snapshots</span><span><button id="compararSnap">Comparar 2 marcados</button><button id="apagarSnap">Apagar marcados</button></span></div>
-          <div id="tabelaSnaps"></div>
-        </div>
-        <div class="secao">
-          <div class="rot"><span>Detalhe</span></div>
-          <div id="detalheSnap" class="detalhe fraco">Clique numa linha para ver o registro inteiro.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="vista" data-vista="6">
-    <div class="grade1" style="grid-template-columns:1fr 380px">
-      <div class="secao">
-        <div class="rot"><span>Regras</span><span class="fraco">verificação a cada 15s · silêncio de 10 min por regra</span></div>
-        <div id="regras"></div>
-        <div class="aviso">O navegador só mostra notificação de sistema se você autorizar. O aviso na tela funciona de qualquer jeito.</div>
-        <button id="pedirPermissao">Autorizar notificações</button>
-      </div>
-      <div class="secao">
-        <div class="rot"><span>Log</span><button id="limparLog">Limpar</button></div>
-        <div id="log" class="mono fraco">Sem disparos ainda.</div>
-      </div>
-    </div>
-  </section>
-
 </div>
 
 <div id="toasts"></div>
@@ -497,6 +678,26 @@ function ligarWebSocket() {
   conectar();
 }
 
+// A faixa de métricas é montada uma vez; depois só os valores mudam.
+// Cada métrica é um atalho para a view que a explica.
+const METRICAS = [
+  { id: 'oi', k: 'Open interest', vista: '1', v: () => dinheiro(E.oi.total) },
+  { id: 'doi', k: 'Δ OI 1h', vista: '2', v: () => pct(E.deltaOi1h, 2), cor: () => E.deltaOi1h },
+  { id: 'funding', k: 'Funding', vista: '1', v: () => (Number.isFinite(E.funding) ? (E.funding * 100).toFixed(4) + '%' : '—'), cor: () => E.funding },
+  { id: 'basis', k: 'Basis', vista: '1', v: () => pct(E.basis, 3), cor: () => E.basis },
+  { id: 'liq', k: 'Liquidações 1h', vista: '3', v: () => dinheiro(janelaLiquidacoes(1).total) },
+  { id: 'vol', k: 'Volume 24h', vista: '1', v: () => dinheiro(E.volume24h) },
+  { id: 'lsr', k: 'Long/short varejo', vista: '1', v: () => (E.lsr.varejo ? E.lsr.varejo.toFixed(2) : '—') },
+  { id: 'termo', k: 'Termômetro', vista: '4', v: () => { const t = calcularTermometro(); return t.nota === null ? '—' : t.nota.toFixed(0); }, cor: () => calcularTermometro().nota },
+  { id: 'pred', k: 'Preditivo', vista: '4', v: () => (E.preditivo && Number.isFinite(E.preditivo.nota) ? String(E.preditivo.nota) : '—'), cor: () => (E.preditivo ? E.preditivo.nota : null) }
+];
+
+function montarFaixa() {
+  $('#faixa').innerHTML = METRICAS.map((m) =>
+    '<button class="metrica" data-ir="' + m.vista + '" title="ir para a view ' + m.vista + '">' +
+    '<span class="k">' + m.k + '</span><span class="v mono" id="m-' + m.id + '">—</span></button>').join('');
+}
+
 function pintarTopo() {
   if (Number.isFinite(E.preco)) {
     $('#preco').textContent = nf(E.preco, 1);
@@ -505,17 +706,16 @@ function pintarTopo() {
   }
   const v24 = $('#var24h');
   v24.textContent = pct(E.var24h);
-  v24.className = 'valor mono ' + classeDe(E.var24h);
-  $('#oiTopo').textContent = E.oi.total ? dinheiro(E.oi.total) : '—';
-  const f = $('#fundingTopo');
-  f.textContent = Number.isFinite(E.funding) ? (E.funding * 100).toFixed(4) + '%' : '—';
-  f.className = 'valor mono ' + classeDe(E.funding);
-  const b = $('#basisTopo');
-  b.textContent = pct(E.basis, 3);
-  b.className = 'valor mono ' + classeDe(E.basis);
-  const j = janelaLiquidacoes(1);
-  $('#liqTopo').textContent = j.total ? dinheiro(j.total) : '—';
-  $('#relogio').textContent = new Date().toLocaleTimeString('pt-BR');
+  v24.style.color = corDe(E.var24h);
+
+  for (const m of METRICAS) {
+    const alvo = document.getElementById('m-' + m.id);
+    if (!alvo) continue;
+    alvo.textContent = m.v();
+    alvo.style.color = m.cor ? corDe(m.cor()) : CORES.branco;
+  }
+  const relogio = $('#relogio');
+  if (relogio) relogio.textContent = new Date().toLocaleTimeString('pt-BR');
 }
 
 function janelaLiquidacoes(horas) {
@@ -559,6 +759,13 @@ async function carregarMercado() {
       const ultimo = Number(swap.data[0].last);
       if (!Number.isFinite(E.preco) && ultimo) E.preco = ultimo;
       if (!Number.isFinite(E.funding)) E.funding = Number(taxa.data[0].fundingRate);
+      if (!Number.isFinite(E.basis) && ultimo) {
+        try {
+          const avista = await px('okx', '/api/v5/market/ticker?instId=BTC-USDT');
+          const spot = Number(avista.data[0].last);
+          if (spot) E.basis = ((ultimo - spot) / spot) * 100;
+        } catch { /* fica sem basis */ }
+      }
       if (!Number.isFinite(E.var24h) && swap.data[0].open24h) {
         E.var24h = ((ultimo - Number(swap.data[0].open24h)) / Number(swap.data[0].open24h)) * 100;
       }
@@ -608,7 +815,22 @@ async function carregarOpenInterest() {
     const umDia = Number(serie[0].sumOpenInterestValue);
     E.deltaOi1h = umaHora ? ((ultimo - umaHora) / umaHora) * 100 : null;
     E.deltaOi24h = umDia ? ((ultimo - umDia) / umDia) * 100 : null;
-  } catch { /* mantém o que tinha */ }
+  } catch { /* tenta a OKX abaixo */ }
+
+  if (!Number.isFinite(E.deltaOi1h) || !Number.isFinite(E.deltaOi24h)) {
+    try {
+      const d = await px('okx', '/api/v5/rubik/stat/contracts/open-interest-volume?ccy=BTC&period=1H');
+      const serie = d.data.map((l) => ({ t: Number(l[0]), v: Number(l[1]) }))
+        .filter((p) => Number.isFinite(p.v)).sort((a, b) => a.t - b.t);
+      if (serie.length > 2) {
+        const fim = serie[serie.length - 1].v;
+        const umaHora = serie[Math.max(0, serie.length - 2)].v;
+        const umDia = serie[Math.max(0, serie.length - 25)].v;
+        if (!Number.isFinite(E.deltaOi1h) && umaHora) E.deltaOi1h = ((fim - umaHora) / umaHora) * 100;
+        if (!Number.isFinite(E.deltaOi24h) && umDia) E.deltaOi24h = ((fim - umDia) / umDia) * 100;
+      }
+    } catch { /* mantém o que tinha */ }
+  }
 }
 
 async function carregarLongShort() {
@@ -624,6 +846,17 @@ async function carregarLongShort() {
     ler('/futures/data/topLongShortAccountRatio?symbol=BTCUSDT&period=5m&limit=1')
   ]);
   E.lsr = { varejo, grandesPosicoes: posicoes, grandesContas: contas };
+
+  // A OKX cobre só o varejo; "grandes contas" e "grandes posições" são
+  // exclusivos da Binance e ficam sem dado quando ela não responde.
+  if (!Number.isFinite(E.lsr.varejo)) {
+    try {
+      const d = await px('okx', '/api/v5/rubik/stat/contracts/long-short-account-ratio?ccy=BTC&period=5m');
+      const serie = d.data.map((l) => ({ t: Number(l[0]), v: Number(l[1]) }))
+        .filter((p) => Number.isFinite(p.v)).sort((a, b) => a.t - b.t);
+      if (serie.length) E.lsr.varejo = serie[serie.length - 1].v;
+    } catch { /* segue sem */ }
+  }
 }
 
 async function carregarLivro() {
@@ -678,33 +911,70 @@ async function carregarLiquidacoes() {
   } catch { /* mantém */ }
 }
 
-async function carregarSerie() {
-  const tf = E.timeframe;
+// A Binance é a fonte preferida da série (tem OI e long/short prontos).
+// Onde ela está bloqueada por região (451), a OKX cobre as três séries.
+async function serieBinance(tf) {
   const periodo = PERIODO[tf];
-  const horas = (MINUTOS[tf] * 200) / 60;
-  const [velas, oi, lsr, liq] = await Promise.all([
+  const [velas, oi, lsr] = await Promise.all([
     px('binance', '/fapi/v1/klines?symbol=BTCUSDT&interval=' + tf + '&limit=200').catch(() => []),
     px('binance', '/futures/data/openInterestHist?symbol=BTCUSDT&period=' + periodo + '&limit=200').catch(() => []),
-    px('binance', '/futures/data/globalLongShortAccountRatio?symbol=BTCUSDT&period=' + periodo + '&limit=200').catch(() => []),
+    px('binance', '/futures/data/globalLongShortAccountRatio?symbol=BTCUSDT&period=' + periodo + '&limit=200').catch(() => [])
+  ]);
+  if (!Array.isArray(velas) || !velas.length) return null;
+  return {
+    fonte: 'binance',
+    velas: velas.map((v) => ({ t: Number(v[0]), o: +v[1], h: +v[2], l: +v[3], c: +v[4] })),
+    oi: (Array.isArray(oi) ? oi : []).map((d) => [Number(d.timestamp), Number(d.sumOpenInterestValue)]),
+    lsr: (Array.isArray(lsr) ? lsr : []).map((d) => [Number(d.timestamp), Number(d.longShortRatio)])
+  };
+}
+
+const BARRA_OKX = { '15m': '15m', '1h': '1H', '4h': '4H', '1d': '1D' };
+
+async function serieOkx(tf) {
+  const bar = BARRA_OKX[tf];
+  const [velas, oi, lsr] = await Promise.all([
+    px('okx', '/api/v5/market/candles?instId=BTC-USDT-SWAP&bar=' + bar + '&limit=200').catch(() => null),
+    px('okx', '/api/v5/rubik/stat/contracts/open-interest-volume?ccy=BTC&period=' + bar).catch(() => null),
+    px('okx', '/api/v5/rubik/stat/contracts/long-short-account-ratio?ccy=BTC&period=' + bar).catch(() => null)
+  ]);
+  const linhas = velas && Array.isArray(velas.data) ? velas.data.slice().reverse() : [];
+  if (!linhas.length) return null;
+  return {
+    fonte: 'okx',
+    velas: linhas.map((v) => ({ t: Number(v[0]), o: +v[1], h: +v[2], l: +v[3], c: +v[4] })),
+    oi: (oi && Array.isArray(oi.data) ? oi.data : []).map((d) => [Number(d[0]), Number(d[1])]),
+    lsr: (lsr && Array.isArray(lsr.data) ? lsr.data : []).map((d) => [Number(d[0]), Number(d[1])])
+  };
+}
+
+async function carregarSerie() {
+  const tf = E.timeframe;
+  const horas = (MINUTOS[tf] * 200) / 60;
+  const [bruta, liq] = await Promise.all([
+    serieBinance(tf).catch(() => null),
     pegar('/api/liq?hours=' + Math.ceil(horas)).catch(() => ({ linhas: [] }))
   ]);
+  const dados = bruta || await serieOkx(tf).catch(() => null);
+  if (!dados) { E.serie = []; E.fonteSerie = null; return; }
+  E.fonteSerie = dados.fonte;
+
   const passo = MINUTOS[tf] * 60 * 1000;
   const caixa = (t) => Math.floor(t / passo) * passo;
-
-  const pontos = velas.map((v) => ({ t: caixa(v[0]), o: +v[1], h: +v[2], l: +v[3], c: +v[4] }));
-  const mapaOi = new Map(oi.map((d) => [caixa(Number(d.timestamp)), Number(d.sumOpenInterestValue)]));
-  const mapaLsr = new Map(lsr.map((d) => [caixa(Number(d.timestamp)), Number(d.longShortRatio)]));
+  const mapaOi = new Map(dados.oi.filter((p) => Number.isFinite(p[1])).map((p) => [caixa(p[0]), p[1]]));
+  const mapaLsr = new Map(dados.lsr.filter((p) => Number.isFinite(p[1])).map((p) => [caixa(p[0]), p[1]]));
   const mapaLiq = new Map();
   for (const l of (liq.linhas || [])) {
     const c = caixa(l.t);
     const atual = mapaLiq.get(c) || { long: 0, short: 0 };
-    const usd = Number(l.usd) || Number(l.px) * Number(l.qty) || 0;
-    atual[l.side === 'long' ? 'long' : 'short'] += usd;
+    atual[l.side === 'long' ? 'long' : 'short'] += Number(l.usd) || Number(l.px) * Number(l.qty) || 0;
     mapaLiq.set(c, atual);
   }
-  E.serie = pontos.map((p) => {
-    const l = mapaLiq.get(p.t) || { long: 0, short: 0 };
-    return { t: p.t, o: p.o, h: p.h, l: p.l, c: p.c, oi: mapaOi.get(p.t) ?? null, lsr: mapaLsr.get(p.t) ?? null, liqLong: l.long, liqShort: l.short };
+
+  E.serie = dados.velas.map((v) => {
+    const t = caixa(v.t);
+    const l = mapaLiq.get(t) || { long: 0, short: 0 };
+    return { t, o: v.o, h: v.h, l: v.l, c: v.c, oi: mapaOi.get(t) ?? null, lsr: mapaLsr.get(t) ?? null, liqLong: l.long, liqShort: l.short };
   });
 }
 
@@ -876,18 +1146,37 @@ function desenharEmpilhado(canvas, saidaTooltip, indiceCorte) {
   canvas._geo = { margemE, passoX, total: dados.length };
 }
 
+function indiceNoCanvas(canvas, evento) {
+  const geo = canvas._geo;
+  if (!geo) return null;
+  const retangulo = canvas.getBoundingClientRect();
+  const x = evento.clientX - retangulo.left;
+  return limitar(Math.floor((x - geo.margemE) / geo.passoX), 0, geo.total - 1);
+}
+
+// Corte solto segue o mouse; clicar fixa no instante escolhido (e desfixa).
 function ligarCorte(canvas, saidaTooltip) {
+  canvas.style.cursor = 'crosshair';
   canvas.addEventListener('mousemove', (evento) => {
-    const geo = canvas._geo;
-    if (!geo) return;
-    const retangulo = canvas.getBoundingClientRect();
-    const x = evento.clientX - retangulo.left;
-    const i = limitar(Math.floor((x - geo.margemE) / geo.passoX), 0, geo.total - 1);
-    desenharEmpilhado(canvas, saidaTooltip, i);
+    if (canvas._corteFixo !== null && canvas._corteFixo !== undefined) return;
+    const i = indiceNoCanvas(canvas, evento);
+    if (i !== null) desenharEmpilhado(canvas, saidaTooltip, i);
   });
   canvas.addEventListener('mouseleave', () => {
+    if (canvas._corteFixo !== null && canvas._corteFixo !== undefined) return;
     if (saidaTooltip) saidaTooltip.textContent = '';
     desenharEmpilhado(canvas, saidaTooltip, null);
+  });
+  canvas.addEventListener('click', (evento) => {
+    if (canvas._corteFixo !== null && canvas._corteFixo !== undefined) {
+      canvas._corteFixo = null;
+      desenharEmpilhado(canvas, saidaTooltip, indiceNoCanvas(canvas, evento));
+      toast('Corte solto: volta a seguir o mouse.');
+    } else {
+      canvas._corteFixo = indiceNoCanvas(canvas, evento);
+      desenharEmpilhado(canvas, saidaTooltip, canvas._corteFixo);
+      toast('Corte fixado. Clique de novo para soltar.');
+    }
   });
 }
 
@@ -949,10 +1238,10 @@ function desenharMapaLiquidacoes(canvas) {
 
 // ---------------------------------------------------------------- sparklines
 const MOEDAS = [
-  { simbolo: 'BTCUSDT', nome: 'BTC' },
-  { simbolo: 'ETHUSDT', nome: 'ETH' },
-  { simbolo: 'SOLUSDT', nome: 'SOL' },
-  { simbolo: 'XRPUSDT', nome: 'XRP' }
+  { simbolo: 'BTCUSDT', par: 'BTC-USDT', nome: 'BTC' },
+  { simbolo: 'ETHUSDT', par: 'ETH-USDT', nome: 'ETH' },
+  { simbolo: 'SOLUSDT', par: 'SOL-USDT', nome: 'SOL' },
+  { simbolo: 'XRPUSDT', par: 'XRP-USDT', nome: 'XRP' }
 ];
 
 async function montarSparklines() {
@@ -961,12 +1250,21 @@ async function montarSparklines() {
   for (const moeda of MOEDAS) {
     const linha = document.createElement('div');
     linha.className = 'sparkbox';
-    linha.innerHTML = '<div><div class="rot">' + moeda.nome + '</div><div class="mono" data-preco style="font-size:12px">—</div></div>' +
-      '<canvas height="26"></canvas><div class="mono" data-var style="font-size:11px;width:56px;text-align:right">—</div>';
+    linha.innerHTML = '<div><div class="rot">' + moeda.nome + '</div>' +
+      '<div class="mono fraco" data-preco style="font-size:10.5px">—</div></div>' +
+      '<canvas height="26"></canvas>' +
+      '<div class="mono" data-var style="font-size:11px;text-align:right">—</div>';
     caixa.appendChild(linha);
     try {
-      const velas = await px('spot', '/api/v3/klines?symbol=' + moeda.simbolo + '&interval=1h&limit=48');
-      const fechamentos = velas.map((v) => +v[4]);
+      let fechamentos = [];
+      try {
+        const velas = await px('spot', '/api/v3/klines?symbol=' + moeda.simbolo + '&interval=1h&limit=48');
+        fechamentos = velas.map((v) => +v[4]);
+      } catch {
+        const d = await px('okx', '/api/v5/market/candles?instId=' + moeda.par + '&bar=1H&limit=48');
+        fechamentos = d.data.slice().reverse().map((v) => +v[4]);
+      }
+      if (!fechamentos.length) throw new Error('sem velas');
       const canvas = linha.querySelector('canvas');
       const { ctx, largura, altura } = preparar(canvas);
       const max = Math.max(...fechamentos), min = Math.min(...fechamentos);
@@ -982,7 +1280,7 @@ async function montarSparklines() {
       linha.querySelector('[data-preco]').textContent = nf(fechamentos[fechamentos.length - 1], fechamentos[0] > 100 ? 0 : 3);
       const alvo = linha.querySelector('[data-var]');
       alvo.textContent = pct(variacao, 1);
-      alvo.className = 'mono ' + classeDe(variacao);
+      alvo.style.color = corDe(variacao);
     } catch { /* deixa em branco */ }
   }
 }
@@ -1019,18 +1317,21 @@ function classificarEstado() {
   };
 }
 
+// Fator sem fonte disponível vira null, não zero: zero é uma medida, ausência
+// de dado não é. O líquido só divide pelo que existe.
 function fatoresDePressao() {
   const liq1h = janelaLiquidacoes(1);
   const totalLiq = liq1h.longUsd + liq1h.shortUsd;
   const s = calcularTermometro();
+  const talvez = (condicao, valor) => (condicao ? limitar(valor, -1, 1) : null);
   return [
-    { nome: 'Fluxo (Δ OI 1h)', v: limitar((E.deltaOi1h || 0) / 1.5, -1, 1), ajuda: 'posição entrando ou saindo na última hora' },
-    { nome: 'Livro', v: limitar((E.livro ? E.livro.desequilibrio : 0) * 2, -1, 1), ajuda: 'compra menos venda dentro de ±2%' },
-    { nome: 'Estouros', v: totalLiq ? limitar((liq1h.shortUsd - liq1h.longUsd) / totalLiq, -1, 1) : 0, ajuda: 'shorts estourando empurram para cima' },
-    { nome: 'Funding', v: limitar(-(E.funding || 0) / 0.0004, -1, 1), ajuda: 'funding muito positivo = comprado lotado, risco de estouro' },
-    { nome: 'Varejo', v: E.lsr.varejo ? limitar((1 - E.lsr.varejo) / 0.6, -1, 1) : 0, ajuda: 'varejo muito comprado costuma ser sinal contrário' },
-    { nome: 'Grandes contas', v: E.lsr.grandesPosicoes ? limitar((E.lsr.grandesPosicoes - 1) / 0.6, -1, 1) : 0, ajuda: 'posição das maiores contas da Binance' },
-    { nome: 'Sentimento', v: Number.isFinite(s.nota) ? limitar(s.nota / 60, -1, 1) : 0, ajuda: 'termômetro da view 4' }
+    { nome: 'Fluxo (Δ OI 1h)', v: talvez(Number.isFinite(E.deltaOi1h), (E.deltaOi1h || 0) / 1.5), ajuda: 'Posição entrando ou saindo na última hora. Entrada acompanhando alta é dinheiro novo.' },
+    { nome: 'Livro', v: talvez(Boolean(E.livro), (E.livro ? E.livro.desequilibrio : 0) * 2), ajuda: 'Ordens de compra menos as de venda dentro de ±2% do preço, somando Binance, Bybit e OKX.' },
+    { nome: 'Estouros', v: talvez(totalLiq > 0, totalLiq ? (liq1h.shortUsd - liq1h.longUsd) / totalLiq : 0), ajuda: 'Quem está sendo liquidado na última hora. Short estourando empurra o preço para cima.' },
+    { nome: 'Funding', v: talvez(Number.isFinite(E.funding), -(E.funding || 0) / 0.0004), ajuda: 'Funding muito positivo significa comprado lotado pagando para ficar na posição — fica caro e vira risco de estouro.' },
+    { nome: 'Varejo', v: talvez(Number.isFinite(E.lsr.varejo), (1 - E.lsr.varejo) / 0.6), ajuda: 'Razão long/short das contas de varejo. Varejo muito comprado costuma funcionar como sinal contrário.' },
+    { nome: 'Grandes contas', v: talvez(Number.isFinite(E.lsr.grandesPosicoes), (E.lsr.grandesPosicoes - 1) / 0.6), ajuda: 'Posição das maiores contas da Binance. Só existe quando a Binance responde.' },
+    { nome: 'Sentimento', v: talvez(Number.isFinite(s.nota), s.nota / 60), ajuda: 'O termômetro da view 4: medo e ganância, notícias, Fed e preditivo.' }
   ];
 }
 
@@ -1040,17 +1341,27 @@ function pintarPressao() {
   caixa.innerHTML = '';
   for (const f of fatores) {
     const div = document.createElement('div');
-    div.className = 'fator';
-    const largura = Math.abs(f.v) * 50;
-    const esquerda = f.v >= 0 ? 50 : 50 - largura;
-    div.innerHTML = '<div title="' + escapar(f.ajuda) + '">' + escapar(f.nome) + '</div>' +
+    div.className = 'fator' + (f.v === null ? ' vazio' : '');
+    const largura = f.v === null ? 0 : Math.abs(f.v) * 50;
+    const esquerda = f.v === null || f.v >= 0 ? 50 : 50 - largura;
+    div.innerHTML = '<div class="nome">' + escapar(f.nome) + '</div>' +
       '<div class="trilho"><div class="meio"></div><div class="barra" style="left:' + esquerda + '%;width:' + largura + '%;background:' + corDe(f.v) + '"></div></div>' +
-      '<div class="mono" style="text-align:right;color:' + corDe(f.v) + '">' + (f.v >= 0 ? '+' : '') + f.v.toFixed(2) + '</div>';
+      '<div class="mono" style="text-align:right;color:' + (f.v === null ? CORES.fraco : corDe(f.v)) + '">' +
+        (f.v === null ? 'sem dado' : (f.v >= 0 ? '+' : '') + f.v.toFixed(2)) + '</div>' +
+      '<div class="ajudaFator">' + escapar(f.ajuda) + '</div>';
+    div.onclick = () => div.classList.toggle('aberto');
     caixa.appendChild(div);
   }
-  const liquido = fatores.reduce((s, f) => s + f.v, 0) / fatores.length;
+  const medidos = fatores.filter((f) => f.v !== null);
   const alvo = $('#pressaoLiquido');
-  alvo.textContent = 'líquido ' + (liquido >= 0 ? '+' : '') + liquido.toFixed(2);
+  if (!medidos.length) {
+    alvo.textContent = 'sem dado';
+    alvo.style.color = CORES.fraco;
+    return;
+  }
+  const liquido = medidos.reduce((s, f) => s + f.v, 0) / medidos.length;
+  alvo.textContent = 'líquido ' + (liquido >= 0 ? '+' : '') + liquido.toFixed(2) +
+    (medidos.length < fatores.length ? ' · ' + medidos.length + '/' + fatores.length + ' fatores' : '');
   alvo.style.color = corDe(liquido);
 }
 
@@ -1103,7 +1414,8 @@ const PESOS = { fng: 0.30, noticias: 0.25, fed: 0.25, preditivo: 0.20 };
 function calcularTermometro() {
   const partes = [];
   const fng = E.fng && E.fng.atual ? E.fng.atual.valor : null;
-  if (Number.isFinite(fng)) partes.push({ chave: 'fng', nome: 'Medo e ganância', valor: (fng - 50) * 2, peso: PESOS.fng });
+  // O índice vem de 0 a 100; aqui tudo vive na escala -100..+100.
+  if (Number.isFinite(fng)) partes.push({ chave: 'fng', nome: 'Medo e ganância', valor: (fng - 50) * 2, peso: PESOS.fng, bruto: fng + '/100' });
   const an = E.sentimento && E.sentimento.analises ? E.sentimento.analises : {};
   if (an.noticias && Number.isFinite(an.noticias.score)) partes.push({ chave: 'noticias', nome: 'Notícias', valor: an.noticias.score, peso: PESOS.noticias });
   if (an.fed && Number.isFinite(an.fed.score)) partes.push({ chave: 'fed', nome: 'Fed', valor: an.fed.score, peso: PESOS.fed });
@@ -1128,7 +1440,9 @@ function pintarTermometro() {
   $('#termoNota').textContent = t.nota === null ? '—' : t.nota.toFixed(0) + ' · ' + rotuloTermometro(t.nota);
   $('#agulha').style.left = t.nota === null ? '50%' : limitar((t.nota + 100) / 2, 0, 100) + '%';
   $('#termoDetalhe').innerHTML = t.partes.length
-    ? t.partes.map((p) => escapar(p.nome) + ' <span class="mono ' + classeDe(p.valor) + '">' + p.valor.toFixed(0) + '</span> <span class="fraco">(' + Math.round(p.peso * 100) + '%)</span>').join(' &nbsp;·&nbsp; ') +
+    ? t.partes.map((p) => escapar(p.nome) + ' <span class="mono ' + classeDe(p.valor) + '">' + p.valor.toFixed(0) + '</span>' +
+        (p.bruto ? ' <span class="fraco mono">(índice ' + escapar(p.bruto) + ')</span>' : '') +
+        ' <span class="fraco">peso ' + Math.round(p.peso * 100) + '%</span>').join(' &nbsp;·&nbsp; ') +
       (t.cobertura < 0.99 ? '<div class="aviso">Faltando ' + Math.round((1 - t.cobertura) * 100) + '% dos pesos: a nota foi normalizada pelo que existe.</div>' : '')
     : '<span class="fraco">rode as análises para preencher</span>';
 
@@ -1163,19 +1477,25 @@ function desenharFng(canvas) {
   textoFraco(ctx, dataHora(atual.t), largura - 84, altura - 2);
 }
 
+let filtroManchetes = '';
+
 function pintarNoticias() {
   const s = E.sentimento;
   if (!s) return;
-  const itens = (s.noticias && s.noticias.itens) ? s.noticias.itens.slice(0, 25) : [];
+  const todas = (s.noticias && s.noticias.itens) ? s.noticias.itens : [];
+  const termo = filtroManchetes.trim().toLowerCase();
+  const itens = (termo ? todas.filter((i) => (i.titulo + ' ' + i.fonte).toLowerCase().includes(termo)) : todas).slice(0, 40);
+
   $('#listaNoticias').innerHTML = itens.map((i) =>
     '<div class="noticia"><div class="fonte">' + escapar(i.fonte) + ' · ' + hora(i.t) + '</div>' +
     '<a href="' + escapar(i.link) + '" target="_blank" rel="noreferrer">' + escapar(i.titulo) + '</a></div>').join('') ||
-    '<div class="fraco">nenhuma manchete relevante nas últimas 36h</div>';
+    '<div class="vazio">' + (termo ? 'nenhuma manchete com “' + escapar(termo) + '”' : 'nenhuma manchete relevante nas últimas 36h') + '</div>';
 
   const falhas = (s.noticias && s.noticias.falhas) || [];
-  if (falhas.length) {
+  if (falhas.length && !termo) {
     $('#listaNoticias').innerHTML += '<div class="aviso">Fontes fora do ar agora: ' +
-      falhas.map((f) => escapar(f.fonte)).join(', ') + '. Parser de RSS quebra calado quando o site muda de formato.</div>';
+      falhas.map((f) => escapar(f.fonte)).join(', ') +
+      '. Parser de RSS quebra calado quando o site muda de formato.</div>';
   }
   pintarAnalise('#analiseNoticias', s.analises ? s.analises.noticias : null);
   pintarAnalise('#analiseFed', s.analises ? s.analises.fed : null);
@@ -1268,31 +1588,58 @@ async function carregarSnapshots() {
   pintarSnapshots();
 }
 
+const COLUNAS_SNAP = [
+  { campo: 'ts', titulo: 'Quando', valor: (s) => s.ts, texto: (s) => dataHora(s.ts) },
+  { campo: 'preco', titulo: 'Preço', valor: (s) => s.preco && s.preco.mark, texto: (s) => nf(s.preco && s.preco.mark, 0) },
+  { campo: 'var24', titulo: '24h', valor: (s) => s.preco && s.preco.var24hPct, texto: (s) => pct(s.preco && s.preco.var24hPct, 1), cor: true },
+  { campo: 'oi', titulo: 'OI', valor: (s) => s.oi && s.oi.totalUsd, texto: (s) => dinheiro(s.oi && s.oi.totalUsd) },
+  { campo: 'doi', titulo: 'Δ OI 1h', valor: (s) => s.deltas && s.deltas.h1 && s.deltas.h1.oiPct, texto: (s) => pct(s.deltas && s.deltas.h1 ? s.deltas.h1.oiPct : null, 1), cor: true },
+  { campo: 'liq', titulo: 'Liq 1h', valor: (s) => (s.liquidacoes && s.liquidacoes.h1) ? s.liquidacoes.h1.longUsd + s.liquidacoes.h1.shortUsd : null, texto: (s) => dinheiro((s.liquidacoes && s.liquidacoes.h1) ? s.liquidacoes.h1.longUsd + s.liquidacoes.h1.shortUsd : null) },
+  { campo: 'pred', titulo: 'Preditivo', valor: (s) => s.preditivo && s.preditivo.nota, texto: (s) => (s.preditivo && Number.isFinite(s.preditivo.nota) ? String(s.preditivo.nota) : '—'), cor: true }
+];
+let ordemSnap = { campo: 'ts', desc: true };
+
 function pintarSnapshots() {
   if (!snapsCarregados.length) {
-    $('#tabelaSnaps').innerHTML = '<div class="fraco">Nenhum snapshot ainda. A captura é manual: aperte S ou o botão.</div>';
+    $('#tabelaSnaps').innerHTML = '<div class="vazio" style="padding:14px">Nenhum snapshot ainda. A captura é manual: aperte <b>S</b> ou o botão salvar.</div>';
     return;
   }
-  const linhas = snapsCarregados.map((s) => {
-    const liq = s.liquidacoes && s.liquidacoes.h1 ? s.liquidacoes.h1 : { longUsd: 0, shortUsd: 0 };
-    return '<tr data-ts="' + s.ts + '">' +
-      '<td><input type="checkbox" data-marca="' + s.ts + '" style="width:auto"></td>' +
-      '<td class="mono">' + dataHora(s.ts) + '</td>' +
-      '<td class="mono">' + nf(s.preco && s.preco.mark, 0) + '</td>' +
-      '<td class="mono ' + classeDe(s.preco && s.preco.var24hPct) + '">' + pct(s.preco && s.preco.var24hPct, 1) + '</td>' +
-      '<td class="mono">' + dinheiro(s.oi && s.oi.totalUsd) + '</td>' +
-      '<td class="mono ' + classeDe(s.deltas && s.deltas.h1 && s.deltas.h1.oiPct) + '">' + pct(s.deltas && s.deltas.h1 ? s.deltas.h1.oiPct : null, 1) + '</td>' +
-      '<td class="mono">' + dinheiro(liq.longUsd + liq.shortUsd) + '</td>' +
-      '<td class="mono">' + (s.preditivo && Number.isFinite(s.preditivo.nota) ? s.preditivo.nota : '—') + '</td>' +
+  const coluna = COLUNAS_SNAP.find((c) => c.campo === ordemSnap.campo) || COLUNAS_SNAP[0];
+  const ordenados = snapsCarregados.slice().sort((a, b) => {
+    const va = coluna.valor(a), vb = coluna.valor(b);
+    const na = Number.isFinite(va) ? va : -Infinity;
+    const nb = Number.isFinite(vb) ? vb : -Infinity;
+    return ordemSnap.desc ? nb - na : na - nb;
+  });
+
+  const cabecalho = '<th></th>' + COLUNAS_SNAP.map((c) =>
+    '<th class="ordenavel" data-ordenar="' + c.campo + '">' + c.titulo +
+    (ordemSnap.campo === c.campo ? (ordemSnap.desc ? ' ↓' : ' ↑') : '') + '</th>').join('') + '<th>Etiquetas</th>';
+
+  const linhas = ordenados.map((s) => {
+    const celulas = COLUNAS_SNAP.map((c) => {
+      const estilo = c.cor ? ' style="color:' + corDe(c.valor(s)) + '"' : '';
+      return '<td class="mono"' + estilo + '>' + c.texto(s) + '</td>';
+    }).join('');
+    return '<tr data-ts="' + s.ts + '" class="' + (marcados.has(s.ts) ? 'marcada' : '') + '">' +
+      '<td><input type="checkbox" data-marca="' + s.ts + '"></td>' + celulas +
       '<td>' + (s.etiquetas || []).map((e) => '<span class="chip">' + escapar(e) + '</span>').join('') + '</td></tr>';
   }).join('');
-  $('#tabelaSnaps').innerHTML =
-    '<table><thead><tr><th></th><th>Quando</th><th>Preço</th><th>24h</th><th>OI</th><th>Δ OI 1h</th><th>Liq 1h</th><th>Pred.</th><th>Etiquetas</th></tr></thead><tbody>' + linhas + '</tbody></table>';
 
+  $('#tabelaSnaps').innerHTML = '<table><thead><tr>' + cabecalho + '</tr></thead><tbody>' + linhas + '</tbody></table>';
+
+  $$('#tabelaSnaps th[data-ordenar]').forEach((th) => {
+    th.onclick = () => {
+      const campo = th.dataset.ordenar;
+      ordemSnap = { campo, desc: ordemSnap.campo === campo ? !ordemSnap.desc : true };
+      pintarSnapshots();
+    };
+  });
   $$('#tabelaSnaps tbody tr').forEach((tr) => {
     tr.onclick = (evento) => {
       if (evento.target.matches('input')) return;
       const snap = snapsCarregados.find((s) => String(s.ts) === tr.dataset.ts);
+      $('#detalheSnap').classList.remove('fraco');
       $('#detalheSnap').textContent = JSON.stringify(snap, null, 2);
     };
   });
@@ -1300,7 +1647,8 @@ function pintarSnapshots() {
     caixa.checked = marcados.has(Number(caixa.dataset.marca));
     caixa.onchange = () => {
       const ts = Number(caixa.dataset.marca);
-      caixa.checked ? marcados.add(ts) : marcados.delete(ts);
+      if (caixa.checked) marcados.add(ts); else marcados.delete(ts);
+      caixa.closest('tr').classList.toggle('marcada', caixa.checked);
     };
   });
 }
@@ -1508,12 +1856,25 @@ $$('[data-tf]').forEach((b) => { b.onclick = () => trocarTimeframe(b.dataset.tf)
 $('#btnSimples').onclick = () => { E.linguagem = 'simples'; guardar('idioma', 'simples'); $('#btnSimples').classList.add('ativo'); $('#btnTecnico').classList.remove('ativo'); pintarEstado(); };
 $('#btnTecnico').onclick = () => { E.linguagem = 'tecnico'; guardar('idioma', 'tecnico'); $('#btnTecnico').classList.add('ativo'); $('#btnSimples').classList.remove('ativo'); pintarEstado(); };
 
+const ORDEM_TF = ['15m', '1h', '4h', '1d'];
+
 document.addEventListener('keydown', (evento) => {
-  if (evento.target.matches('input, textarea')) return;
-  if (evento.key >= '1' && evento.key <= '6') trocarVista(evento.key);
-  if (evento.key === 's' || evento.key === 'S') { trocarVista('5'); salvarSnapshot(); }
-  if (evento.key === 'r' || evento.key === 'R') { evento.preventDefault(); cicloMedio(); carregarSerie().then(redesenhar); }
-  if (evento.key === 'Escape') $('#modal').classList.remove('aberto');
+  if (evento.target.matches('input, textarea')) {
+    if (evento.key === 'Escape') evento.target.blur();
+    return;
+  }
+  const k = evento.key;
+  if (k >= '1' && k <= '6') return trocarVista(k);
+  if (k === 'ArrowRight') return trocarVista(String(Math.min(6, Number(E.vista) + 1)));
+  if (k === 'ArrowLeft') return trocarVista(String(Math.max(1, Number(E.vista) - 1)));
+  if (k === 's' || k === 'S') { trocarVista('5'); return salvarSnapshot(); }
+  if (k === 'r' || k === 'R') { evento.preventDefault(); cicloMedio(); carregarSerie().then(redesenhar); return toast('Recarregando…'); }
+  if (k === 'f' || k === 'F') {
+    const i = (ORDEM_TF.indexOf(E.timeframe) + 1) % ORDEM_TF.length;
+    return trocarTimeframe(ORDEM_TF[i]);
+  }
+  if (k === '?') return $('#ajuda').classList.toggle('aberto');
+  if (k === 'Escape') $$('.sobreposicao').forEach((s) => s.classList.remove('aberto'));
 });
 
 function redesenhar() {
@@ -1524,11 +1885,12 @@ function redesenhar() {
   pintarTermometro();
   pintarMacro();
   if (E.vista === '1') {
-    desenharEmpilhado($('#graficoGeral'), $('#tooltipGeral'), null);
+    desenharEmpilhado($('#graficoGeral'), $('#tooltipGeral'), $('#graficoGeral')._corteFixo ?? null);
     desenharMapaLivro($('#mapaLivro'));
     desenharMapaLiquidacoes($('#mapaLiq'));
   }
-  if (E.vista === '2') desenharEmpilhado($('#graficoCheio'), $('#tooltipCheio'), null);
+  if (E.vista === '2') desenharEmpilhado($('#graficoCheio'), $('#tooltipCheio'), $('#graficoCheio')._corteFixo ?? null);
+  $$('[data-fonte-serie]').forEach((el) => { el.textContent = E.fonteSerie ? 'fonte: ' + E.fonteSerie : ''; });
   if (E.vista === '3') {
     desenharMapaLivro($('#mapaLivroGrande'));
     desenharMapaLiquidacoes($('#mapaLiqGrande'));
@@ -1556,6 +1918,7 @@ async function cicloLento() {
   pintarTermometro();
   pintarMacro();
   pintarFrescor();
+  pintarPressao();  // o fator "sentimento" só existe depois deste ciclo
   if (E.vista === '4') { desenharFng($('#graficoFng')); pintarPreditivo(); }
 }
 
@@ -1563,8 +1926,10 @@ async function iniciar() {
   $$('[data-tf]').forEach((b) => b.classList.toggle('ativo', b.dataset.tf === E.timeframe));
   $('#btnTecnico').classList.toggle('ativo', E.linguagem === 'tecnico');
   $('#btnSimples').classList.toggle('ativo', E.linguagem !== 'tecnico');
+  montarFaixa();
   pintarRegras();
   pintarLog();
+  restaurarPaineis();
   trocarVista(E.vista);
 
   await verificarConfig();
@@ -1585,9 +1950,56 @@ async function iniciar() {
   setInterval(verificarAlertas, 15000);
 }
 
-ligarCorte($('#graficoGeral'), $('#tooltipGeral'));
-ligarCorte($('#graficoCheio'), $('#tooltipCheio'));
-window.addEventListener('resize', () => redesenhar());
+
+
+// ============================================================ interações novas
+// Painéis recolhíveis: o estado fica no localStorage, então o cockpit abre
+// exatamente como você deixou.
+function restaurarPaineis() {
+  const fechados = new Set(lembrar('paineis-fechados', []));
+  $$('.painel[data-painel]').forEach((painel) => {
+    const nome = painel.dataset.painel;
+    if (fechados.has(nome)) painel.classList.add('fechado');
+    const titulo = painel.querySelector('header h3');
+    if (!titulo) return;
+    titulo.onclick = () => {
+      painel.classList.toggle('fechado');
+      const agora = new Set(lembrar('paineis-fechados', []));
+      if (painel.classList.contains('fechado')) agora.add(nome); else agora.delete(nome);
+      guardar('paineis-fechados', Array.from(agora));
+      if (!painel.classList.contains('fechado')) redesenhar();
+    };
+  });
+}
+
+// Qualquer elemento com data-ir="N" leva para a view N (métricas do topo,
+// botões "ver" dos painéis).
+document.addEventListener('click', (evento) => {
+  const alvo = evento.target.closest('[data-ir]');
+  if (!alvo) return;
+  evento.stopPropagation();
+  trocarVista(alvo.dataset.ir);
+});
+
+$('#btnAjuda').onclick = () => $('#ajuda').classList.toggle('aberto');
+$('#fecharAjuda').onclick = () => $('#ajuda').classList.remove('aberto');
+$('#btnAjustes').onclick = () => $('#modal').classList.add('aberto');
+$$('.sobreposicao').forEach((s) => {
+  s.addEventListener('click', (evento) => { if (evento.target === s) s.classList.remove('aberto'); });
+});
+
+$('#filtroNoticias').addEventListener('input', (evento) => {
+  filtroManchetes = evento.target.value;
+  pintarNoticias();
+});
+
+// Redesenhar no resize custa caro; espera o usuário parar de arrastar.
+let temporizadorResize = null;
+window.addEventListener('resize', () => {
+  clearTimeout(temporizadorResize);
+  temporizadorResize = setTimeout(() => { redesenhar(); montarSparklines(); }, 180);
+});
+
 iniciar();
 </script>
 </body>

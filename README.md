@@ -8,35 +8,10 @@ Roda em `localhost:8899`. Sem banco de dados (arquivos `.jsonl`), sem framework,
 **sem nenhuma dependência npm**. Só Node 22 ou maior — é dele que vêm o `fetch` e o `WebSocket`
 globais que o projeto usa.
 
-## Print
+![BTC RADAR](docs/print.png)
 
-Ainda não tem screenshot no repositório. O layout é este:
-
-```
-BTC RADAR   78.027,4  +1,2%   OI 12,4 bi   funding 0,0077%   basis -0,05%   liq 1h 3,1 mi   ● AO VIVO   [1..6]
-──────────────────────────────────────────────────────────────────────────────────────────────────────────
- MERCADO          │  ESTADO DO MERCADO                        │  MAPA DE LIQUIDEZ
- BTC  ▁▂▄▆█ +1,2% │  ALTA COM DINHEIRO NOVO                   │  ▇▇▇▇▇▇▇ 78.400
- ETH  ▂▃▅▆▇ +0,8% │  O preço subiu e entrou gente nova...     │  ▇▇▇▇ 78.200
- SOL  ▁▁▂▃▄ -0,3% │                                           │  ──── preço ────
- XRP  ▂▂▁▁▂ +0,1% │  DE ONDE VEM A PRESSÃO                    │  ▇▇▇▇▇▇ 77.900
-                  │  Fluxo      ──█▌      +0,42               │
- SENTIMENTO       │  Livro      ─█▌       +0,28               │  LIQUIDAÇÕES POR PREÇO
- Termômetro  +18  │  Estouros   ▐█──      -0,31               │  ▇▇▇▇▇▇▇▇ 77.800
- Notícias    +12  │  Funding    ▐█▌       -0,12               │  ▇▇▇ 77.500
- Fed          +5  │  ...                                      │
-                  │                                           │  MAIORES MUROS
- MACRO            │  GRÁFICO EMPILHADO (preço/OI/L-S/liq)     │  78.400   4,2 mi
- DXY   -0,2%      │  ┌─────────────────────────────────────┐  │  77.900   3,8 mi
- 10a   +0,1%      │  │ preço ▏▎▍▌▋▊▉                        │  │
- DVOL  -3,1% 7d   │  │ open interest ───────╱               │  │
-                  │  │ long/short ──╲──╱────                │  │
-                  │  │ liquidações ▁▁▃█▂▁                   │  │
-                  │  └─────────────────────────────────────┘  │
-```
-
-Para colocar um print de verdade: salve em `docs/print.png` e troque este bloco por
-`![BTC RADAR](docs/print.png)`.
+*Visão geral. Neste print a Binance está bloqueada por região, então preço, open interest e a
+série do gráfico vêm da OKX — o painel diz a fonte em vez de ficar vazio.*
 
 ## Como rodar
 
@@ -114,6 +89,7 @@ GEMINI_KEY=sua-chave npm start
 |---|---|
 | Preço ao vivo, trades | Bybit WebSocket `wss://stream.bybit.com/v5/public/linear` |
 | Mark, funding, basis, volume | Binance `premiumIndex` + ticker spot; OKX como reserva quando a Binance não responde |
+| Série do gráfico (velas, OI, long/short) | Binance; OKX (`candles`, `rubik/stat/contracts/*`) como reserva onde a Binance responde 451 |
 | Open interest | Binance `openInterestHist`, Bybit `/v5/market/open-interest`, OKX `open-interest` (campo `oiCcy`), Hyperliquid `POST /info {"type":"metaAndAssetCtxs"}` |
 | Long/short | Binance `globalLongShortAccountRatio`, `topLongShortPositionRatio`, `topLongShortAccountRatio` |
 | Livro / muros | Binance `depth`, Bybit `orderbook`, OKX `books` (somados no painel, dentro de ±2%) |
@@ -162,6 +138,27 @@ zerar quando a exchange oscila.
 `1` a `6` trocam de view, `S` salva snapshot, `R` recarrega. As preferências (view, timeframe,
 idioma, alertas) ficam no `localStorage` com prefixo `btcr-`.
 
+## A interface
+
+Seis views, trocadas pelos números **1** a **6** ou pelas abas. A faixa de métricas embaixo do
+preço é clicável: cada número leva para a view que o explica.
+
+- **Painéis recolhíveis.** Clique no título de qualquer painel para fechar. O que você fechar
+  continua fechado na próxima abertura (fica no `localStorage`).
+- **Estado do mercado** em texto grande, derivado de preço 24h cruzado com Δ open interest 24h.
+  O botão simples/técnico troca a explicação sem trocar a leitura.
+- **De onde vem a pressão**: uma barra divergente por fator (fluxo, livro, estouros, funding,
+  varejo, grandes contas, sentimento). Clique num fator para ler o que ele mede. Fator sem fonte
+  disponível aparece apagado e escrito "sem dado" — não vira zero, e não entra na média do líquido.
+- **Gráfico empilhado**: preço, open interest, long/short e liquidações em painéis separados
+  dividindo o mesmo eixo de tempo. Passe o mouse para a linha de corte; **clique para fixar** o
+  instante e clicar de novo solta.
+- **Manchetes** têm filtro por texto. **Snapshots** tem tabela ordenável (clique no cabeçalho).
+- Atalhos: `1`–`6` views, `←` `→` passa de view, `S` salva snapshot, `R` recarrega,
+  `F` gira o timeframe, `?` abre a lista de atalhos, `Esc` fecha janelas.
+
+O layout tem três quebras: três colunas acima de 1560px, duas até 1180px e uma coluna abaixo disso.
+
 ## Snapshots
 
 A captura é **manual** (`snapshotMin: 0`). Open interest, livro e liquidações de um snapshot vêm
@@ -184,6 +181,9 @@ muros, termômetro) vai separado em `snap.painel`. O CSV sai com ponto e vírgul
 - **A leitura por IA é uma leitura**, com as limitações de sempre: pode errar ênfase, pode perder
   contexto, e o modelo gratuito devolve 503/429 com frequência (há repetição com espera, mas ela
   também pode acabar falhando).
+- **A reserva pela OKX não é idêntica à Binance.** Onde a Binance está bloqueada, o painel troca
+  para a OKX e escreve a fonte no cabeçalho do gráfico. Long/short de "grandes contas" e "grandes
+  posições" só existe na Binance: sem ela, esses fatores ficam marcados como sem dado.
 - **Delta de open interest depende de histórico.** Nas primeiras horas de uso o servidor ainda está
   enchendo o `history.jsonl`; o painel contorna lendo a série da Binance direto, mas se a Binance
   estiver bloqueada na sua região esse número demora a aparecer.

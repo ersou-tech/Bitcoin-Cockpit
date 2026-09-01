@@ -62,17 +62,39 @@ async function buscarTexto(url, ms = 15000) {
   return resposta.text();
 }
 
+const NOMEADAS = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+  hellip: '…', mdash: '—', ndash: '–', rsquo: '\u2019', lsquo: '\u2018',
+  ldquo: '\u201c', rdquo: '\u201d', middot: '·', eacute: 'é', uuml: 'ü'
+};
+
+// Feeds costumam vir escapados duas vezes (&amp;#x2019;), entao decodifica em
+// duas passadas: nomeadas primeiro, numericas depois.
+function decodificar(texto) {
+  let saida = texto;
+  for (let passada = 0; passada < 2; passada++) {
+    saida = saida
+      .replace(/&([a-z]+);/gi, (todo, nome) => {
+        const chave = nome.toLowerCase();
+        return Object.prototype.hasOwnProperty.call(NOMEADAS, chave) ? NOMEADAS[chave] : todo;
+      })
+      .replace(/&#x([0-9a-f]+);/gi, (todo, codigo) => {
+        const n = parseInt(codigo, 16);
+        return n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : todo;
+      })
+      .replace(/&#(\d+);/g, (todo, codigo) => {
+        const n = Number(codigo);
+        return n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : todo;
+      });
+  }
+  return saida;
+}
+
 function semTags(html) {
-  return html
+  return decodificar(html
     .replace(/<script[\s\S]*?<\/script>/gi, ' ')
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
+    .replace(/<[^>]+>/g, ' '))
     .replace(/\s+/g, ' ')
     .trim();
 }
